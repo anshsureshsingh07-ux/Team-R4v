@@ -1,0 +1,7 @@
+{
+  "name": "Team R4V | Banning com, Banners & Fyters",
+  "description": "Team R4V — a private enforcement and case-management community focused on evidence, platform-rule reporting, investigations, and responsible digital action.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
