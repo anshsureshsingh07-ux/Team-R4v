@@ -28,6 +28,7 @@ import {
   FileCheck
 } from 'lucide-react';
 import { ApplicationRecord, AuditLogRecord, ApplicationStatus } from '../types';
+import { safeFetchJson } from '../utils/api';
 
 interface AdminPanelProps {
   onExitAdmin: () => void;
@@ -71,51 +72,56 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
   useEffect(() => {
     if (!token) return;
 
-    fetch('/api/auth/verify', {
+    safeFetchJson<{ valid: boolean; email: string }>('/api/auth/verify', {
       headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Session invalid');
-        return res.json();
-      })
-      .then((data) => {
-        setAdminEmail(data.email);
-        loadDashboardData(token);
-      })
-      .catch(() => {
+    }).then((res) => {
+      if (!res.ok || !res.data?.email) {
         localStorage.removeItem('r4v_admin_token');
         setToken(null);
-      });
+        return;
+      }
+      setAdminEmail(res.data.email);
+      loadDashboardData(token);
+    });
   }, [token]);
 
   // Load Dashboard Data (Applications + Logs + Stats)
   const loadDashboardData = async (authToken: string) => {
     try {
       // 1. Fetch applications
-      const appsRes = await fetch('/api/admin/applications?archived=false', {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      if (appsRes.ok) {
-        const data = await appsRes.json();
-        setApplications(data.applications || []);
+      const appsRes = await safeFetchJson<{ applications: ApplicationRecord[] }>(
+        '/api/admin/applications?archived=false',
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      if (appsRes.ok && appsRes.data?.applications) {
+        setApplications(appsRes.data.applications);
       }
 
       // 2. Fetch stats
-      const statsRes = await fetch('/api/admin/stats', {
+      const statsRes = await safeFetchJson<{
+        stats: {
+          totalApplications: number;
+          pending: number;
+          needsReview: number;
+          approved: number;
+          rejected: number;
+          archived: number;
+          totalLogs: number;
+        };
+      }>('/api/admin/stats', {
         headers: { Authorization: `Bearer ${authToken}` },
       });
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats(data.stats);
+      if (statsRes.ok && statsRes.data?.stats) {
+        setStats(statsRes.data.stats);
       }
 
       // 3. Fetch audit logs
-      const logsRes = await fetch('/api/admin/audit-logs?limit=50', {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      if (logsRes.ok) {
-        const data = await logsRes.json();
-        setAuditLogs(data.logs || []);
+      const logsRes = await safeFetchJson<{ logs: AuditLogRecord[] }>(
+        '/api/admin/audit-logs?limit=50',
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      if (logsRes.ok && logsRes.data?.logs) {
+        setAuditLogs(logsRes.data.logs);
       }
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
@@ -129,18 +135,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     setIsLoggingIn(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await safeFetchJson<{
+        token: string;
+        admin: { email: string; role: string; expiresIn: string };
+      }>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Authentication rejected by central terminal.');
+      if (!response.ok || !response.data?.token) {
+        throw new Error(response.error || 'Authentication rejected by central terminal.');
       }
 
+      const data = response.data;
       localStorage.setItem('r4v_admin_token', data.token);
       setToken(data.token);
       setAdminEmail(data.admin.email);
@@ -158,7 +166,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
   const handleLogout = async () => {
     if (token) {
       try {
-        await fetch('/api/auth/logout', {
+        await safeFetchJson('/api/auth/logout', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -178,27 +186,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     setIsUpdatingStatus(true);
 
     try {
-      const res = await fetch(`/api/admin/applications/${appId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          reviewNotes: reviewNoteInput,
-        }),
-      });
+      const res = await safeFetchJson<{ application: ApplicationRecord }>(
+        `/api/admin/applications/${appId}/status`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            status: newStatus,
+            reviewNotes: reviewNoteInput,
+          }),
+        }
+      );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update application status.');
+      if (!res.ok || !res.data?.application) {
+        throw new Error(res.error || 'Failed to update application status.');
+      }
 
+      const updatedApp = res.data.application;
       // Update state locally
       setApplications((prev) =>
-        prev.map((app) => (app.id === appId ? data.application : app))
+        prev.map((app) => (app.id === appId ? updatedApp : app))
       );
       if (selectedApp?.id === appId) {
-        setSelectedApp(data.application);
+        setSelectedApp(updatedApp);
       }
 
       triggerNotification(`Application ${appId} status set to [${newStatus}]`);
@@ -216,23 +229,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     if (!token) return;
 
     try {
-      const res = await fetch(`/api/admin/applications/${appId}/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reviewNotes: reviewNoteInput }),
-      });
+      const res = await safeFetchJson<{ application: ApplicationRecord }>(
+        `/api/admin/applications/${appId}/notes`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reviewNotes: reviewNoteInput }),
+        }
+      );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update notes.');
+      if (!res.ok || !res.data?.application) {
+        throw new Error(res.error || 'Failed to update notes.');
+      }
 
+      const updatedApp = res.data.application;
       setApplications((prev) =>
-        prev.map((app) => (app.id === appId ? data.application : app))
+        prev.map((app) => (app.id === appId ? updatedApp : app))
       );
       if (selectedApp?.id === appId) {
-        setSelectedApp(data.application);
+        setSelectedApp(updatedApp);
       }
       triggerNotification(`Review notes saved for ${appId}`);
       loadDashboardData(token);
@@ -247,23 +265,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     if (!token) return;
 
     try {
-      const res = await fetch(`/api/admin/applications/${appId}/archive`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ archived: !currentArchived }),
-      });
+      const res = await safeFetchJson<{ application: ApplicationRecord }>(
+        `/api/admin/applications/${appId}/archive`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ archived: !currentArchived }),
+        }
+      );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to archive application.');
+      if (!res.ok || !res.data?.application) {
+        throw new Error(res.error || 'Failed to archive application.');
+      }
 
+      const updatedApp = res.data.application;
       setApplications((prev) =>
-        prev.map((app) => (app.id === appId ? data.application : app))
+        prev.map((app) => (app.id === appId ? updatedApp : app))
       );
       if (selectedApp?.id === appId) {
-        setSelectedApp(data.application);
+        setSelectedApp(updatedApp);
       }
       triggerNotification(`Application ${appId} ${!currentArchived ? 'ARCHIVED' : 'UNARCHIVED'}`);
       loadDashboardData(token);

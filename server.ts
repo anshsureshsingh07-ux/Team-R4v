@@ -14,6 +14,15 @@ app.set('trust proxy', 1);
 
 app.use(express.json());
 
+// Handle malformed JSON body payloads gracefully with JSON error responses
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err && (err instanceof SyntaxError || err.type === 'entity.parse.failed')) {
+    res.status(400).json({ success: false, error: 'Invalid JSON request payload.' });
+    return;
+  }
+  next(err);
+});
+
 // Ensure data directory exists
 const DATA_DIR = path.join(process.cwd(), 'data');
 if (!fs.existsSync(DATA_DIR)) {
@@ -199,15 +208,19 @@ function addAuditLog(action: string, adminEmail: string, details: string, target
 // Rate Limiter for Login Protection
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 login requests per windowMs
-  message: {
-    error: 'Too many authentication attempts from this terminal. Access temporarily sealed for 15 minutes.',
-  },
+  max: 20, // Limit each IP to 20 login requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
   validate: {
     trustProxy: false,
     xForwardedForHeader: false,
+  },
+  handler: (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(429).json({
+      success: false,
+      error: 'Too many authentication attempts from this terminal. Access temporarily sealed for 15 minutes.',
+    });
   },
 });
 
@@ -305,65 +318,74 @@ app.post('/api/applications', (req, res) => {
 
 // Admin Login
 app.post('/api/auth/login', loginLimiter, (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    res.status(400).json({ error: 'Email and secret key are required for terminal clearance.' });
-    return;
-  }
-
-  const db = getDatabase();
-  const normalizedEmail = String(email).trim().toLowerCase();
-
-  // Check email
-  if (normalizedEmail !== db.admin.email.toLowerCase()) {
-    addAuditLog('FAILED_LOGIN', normalizedEmail, `Failed authentication attempt (unknown identifier)`, undefined, req.ip);
-    res.status(401).json({ error: 'Access Denied: Invalid bureau credentials.' });
-    return;
-  }
-
-  // Check password (supports database hash, configured initial password, or safe instagram password)
-  let isValid = false;
+  res.setHeader('Content-Type', 'application/json');
   try {
-    isValid = bcrypt.compareSync(password, db.admin.passwordHash);
-  } catch {
-    isValid = false;
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+      res.status(400).json({ success: false, error: 'Email and secret key are required for terminal clearance.' });
+      return;
+    }
+
+    const db = getDatabase();
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    // Check email
+    if (normalizedEmail !== db.admin.email.toLowerCase()) {
+      addAuditLog('FAILED_LOGIN', normalizedEmail, `Failed authentication attempt (unknown identifier)`, undefined, req.ip);
+      res.status(401).json({ success: false, error: 'Access Denied: Invalid bureau credentials.' });
+      return;
+    }
+
+    // Check password (supports database hash, configured initial password, or safe instagram password)
+    let isValid = false;
+    try {
+      isValid = bcrypt.compareSync(password, db.admin.passwordHash);
+    } catch {
+      isValid = false;
+    }
+
+    // Also support the designated safe Instagram password / configured secrets
+    if (!isValid && (password === INSTAGRAM_ADMIN_PASSWORD || password === INITIAL_ADMIN_PASSWORD || password === process.env.ADMIN_PASSWORD)) {
+      isValid = true;
+      // Update hash in database to keep state synchronized
+      const salt = bcrypt.genSaltSync(10);
+      db.admin.passwordHash = bcrypt.hashSync(password, salt);
+      db.admin.updatedAt = new Date().toISOString();
+      saveDatabase(db);
+    }
+
+    if (!isValid) {
+      addAuditLog('FAILED_LOGIN', db.admin.email, `Failed authentication attempt (invalid password credentials)`, undefined, req.ip);
+      res.status(401).json({ success: false, error: 'Access Denied: Invalid bureau credentials.' });
+      return;
+    }
+
+    // Generate JWT (valid for 8 hours)
+    const token = jwt.sign(
+      { email: db.admin.email, role: 'SUPER_ADMIN' },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    addAuditLog('LOGIN', db.admin.email, `Administrator authenticated successfully from terminal`, undefined, req.ip);
+
+    res.json({
+      success: true,
+      token,
+      admin: {
+        email: db.admin.email,
+        role: 'SUPER_ADMIN',
+        expiresIn: '8h',
+      },
+    });
+  } catch (err: unknown) {
+    console.error('Error in /api/auth/login:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error occurred while validating credentials.',
+    });
   }
-
-  // Also support the designated safe Instagram password / configured secrets
-  if (!isValid && (password === INSTAGRAM_ADMIN_PASSWORD || password === INITIAL_ADMIN_PASSWORD || password === process.env.ADMIN_PASSWORD)) {
-    isValid = true;
-    // Update hash in database to keep state synchronized
-    const salt = bcrypt.genSaltSync(10);
-    db.admin.passwordHash = bcrypt.hashSync(password, salt);
-    db.admin.updatedAt = new Date().toISOString();
-    saveDatabase(db);
-  }
-
-  if (!isValid) {
-    addAuditLog('FAILED_LOGIN', db.admin.email, `Failed authentication attempt (invalid password credentials)`, undefined, req.ip);
-    res.status(401).json({ error: 'Access Denied: Invalid bureau credentials.' });
-    return;
-  }
-
-  // Generate JWT (valid for 8 hours)
-  const token = jwt.sign(
-    { email: db.admin.email, role: 'SUPER_ADMIN' },
-    JWT_SECRET,
-    { expiresIn: '8h' }
-  );
-
-  addAuditLog('LOGIN', db.admin.email, `Administrator authenticated successfully from terminal`, undefined, req.ip);
-
-  res.json({
-    success: true,
-    token,
-    admin: {
-      email: db.admin.email,
-      role: 'SUPER_ADMIN',
-      expiresIn: '8h',
-    },
-  });
 });
 
 // Admin Verify Token
@@ -575,6 +597,29 @@ app.get('/api/admin/stats', requireAdminAuth, (req, res) => {
   };
 
   res.json({ stats });
+});
+
+// 404 handler for unmatched API routes (before static / SPA fallback)
+app.all('/api/*', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.status(404).json({
+    success: false,
+    error: `API endpoint not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// Global API error handler
+app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Express server unhandled error:', err);
+  if (req.path.startsWith('/api/') || req.originalUrl.startsWith('/api/')) {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(err.status || 500).json({
+      success: false,
+      error: err.message || 'Internal server error occurred.',
+    });
+    return;
+  }
+  res.status(err.status || 500).send('Internal Server Error');
 });
 
 // Initialize database on boot

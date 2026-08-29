@@ -1,0 +1,269 @@
+{
+  "admin": {
+    "email": "team@r4v.com",
+    "passwordHash": "$2b$10$9nk6Ag7rMzJp5JgEpxBBrOtWS9v8tfyoG3Tj6IVbCUB9gIXPx8Azu",
+    "updatedAt": "2026-08-29T08:35:09.994Z"
+  },
+  "applications": [
+    {
+      "id": "R4V-APP-13868",
+      "username": "ggggggggggggggggggggggggggggggggggggggg",
+      "email": "krishsinghking07@gmail.com",
+      "ageConfirmed": true,
+      "reason": "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+      "skills": "hhhhhhhhhhhbbbbbbbbbbbbbbbbbbbbbmbbbbb",
+      "experience": "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhbbbbbbbbbbbbbbbbbbbbbbbbbbbbbhbbb",
+      "socialHandle": "hhhhhhhhhhhhhhhhhhhhhhhh",
+      "codeAgreed": true,
+      "status": "Needs Review",
+      "createdAt": "2026-08-29T09:02:22.725Z",
+      "updatedAt": "2026-08-29T09:09:22.446Z",
+      "reviewNotes": "kjjjjjjjjjjjjjjjjjjjjjjn",
+      "archived": false,
+      "reviewedBy": "team@r4v.com"
+    },
+    {
+      "id": "R4V-APP-82404",
+      "username": "djfhhhdhddndn",
+      "email": "krishsinghking07@gmail.com",
+      "ageConfirmed": true,
+      "reason": "hdfksaaaasjnmcx",
+      "skills": "sjdjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj",
+      "experience": "djcnmcxnfjejammdddffnf",
+      "socialHandle": "fjjjjjjjjjjjjjjjjjjjjvvvvvvv",
+      "codeAgreed": true,
+      "status": "Approved",
+      "createdAt": "2026-08-29T08:58:18.526Z",
+      "updatedAt": "2026-08-29T08:58:39.737Z",
+      "reviewNotes": "",
+      "archived": false,
+      "reviewedBy": "team@r4v.com"
+    },
+    {
+      "id": "R4V-APP-10824",
+      "username": "Arthur_Shelby_Audit",
+      "email": "arthur.auditor@archive.bureau.org",
+      "ageConfirmed": true,
+      "reason": "To establish uncompromising chain-of-custody protocols for digital platform policy infractions and prevent manufactured harassment campaigns.",
+      "skills": "Digital Forensics, Metadata Verification, Wayback Machine / Archive.today indexing, Terms of Service compliance analysis.",
+      "experience": "3 years moderating cybersecurity forums and filing verified incident dossiers with platform trust & safety councils.",
+      "socialHandle": "@ArthurShelby_UK (Telegram)",
+      "codeAgreed": true,
+      "status": "Approved",
+      "createdAt": "2026-08-27T08:35:09.873Z",
+      "updatedAt": "2026-08-29T08:56:58.182Z",
+      "reviewNotes": "",
+      "reviewedBy": "team@r4v.com",
+      "archived": false
+    },
+    {
+      "id": "R4V-APP-29471",
+      "username": "Cipher_Ghost_77",
+      "email": "cipher.ghost.archive@proton.me",
+      "ageConfirmed": true,
+      "reason": "Passionate about dismantling bot networks and preserving objective historical internet records without engaging in personal feuds.",
+      "skills": "Network traffic analysis, OSINT data correlation, Telegram/Discord scam vector identification.",
+      "experience": "Former trust & safety contributor for open-source intelligence research groups.",
+      "socialHandle": "@CipherGhost77 (Discord)",
+      "codeAgreed": true,
+      "status": "Rejected",
+      "createdAt": "2026-08-28T20:35:09.873Z",
+      "updatedAt": "2026-08-29T08:57:03.078Z",
+      "reviewNotes": "",
+      "archived": false,
+      "reviewedBy": "team@r4v.com"
+    },
+    {
+      "id": "R4V-APP-33910",
+      "username": "Ada_Vance_Research",
+      "email": "ada.vance@intel-bureau.co.uk",
+      "ageConfirmed": true,
+      "reason": "Deeply respect the R4V ethos of \"Evidence before accusation\". Seeking to contribute structured research on recurring phishing infrastructures.",
+      "skills": "Lexical analysis, Phishing URL clustering, Evidence documentation formatting.",
+      "experience": "Information security undergraduate researcher with 2 published incident briefs.",
+      "socialHandle": "@AdaVance_UK (Discord)",
+      "codeAgreed": true,
+      "status": "Approved",
+      "createdAt": "2026-08-25T08:35:09.873Z",
+      "updatedAt": "2026-08-29T08:57:07.115Z",
+      "reviewNotes": "Vetted and verified. Assigned to Archival Review Bureau.",
+      "reviewedBy": "team@r4v.com",
+      "archived": true
+    },
+    {
+      "id": "R4V-APP-41092",
+      "username": "Vanguard_Raider_9",
+      "email": "vanguard.raider@throwaway.net",
+      "ageConfirmed": true,
+      "reason": "I want to help takedown accounts fast and mass report abusers on IG.",
+      "skills": "Fast typing, mass account creation.",
+      "experience": "None formal.",
+      "socialHandle": "@VanguardRaider (Telegram)",
+      "codeAgreed": true,
+      "status": "Needs Review",
+      "createdAt": "2026-08-24T08:35:09.873Z",
+      "updatedAt": "2026-08-29T08:57:12.175Z",
+      "reviewNotes": "",
+      "reviewedBy": "team@r4v.com",
+      "archived": false
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "LOG-1787997465959-3563",
+      "action": "FAILED_LOGIN",
+      "timestamp": "2026-08-29T09:57:45.959Z",
+      "adminEmail": "test@test.com",
+      "details": "Failed authentication attempt (unknown identifier)",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787994562447-3711",
+      "action": "NOTE_ADDED",
+      "timestamp": "2026-08-29T09:09:22.447Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-13868",
+      "details": "Review notes updated for R4V-APP-13868",
+      "ip": "169.254.169.126"
+    },
+    {
+      "id": "LOG-1787994552675-2789",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T09:09:12.675Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-13868",
+      "details": "Application R4V-APP-13868 (ggggggggggggggggggggggggggggggggggggggg) status updated from [Rejected] to [Needs Review]. Notes: None",
+      "ip": "169.254.169.126"
+    },
+    {
+      "id": "LOG-1787994164623-8235",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T09:02:44.623Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-13868",
+      "details": "Application R4V-APP-13868 (ggggggggggggggggggggggggggggggggggggggg) status updated from [Pending] to [Rejected]. Notes: None",
+      "ip": "169.254.169.126"
+    },
+    {
+      "id": "LOG-1787994142726-7211",
+      "action": "APPLICATION_SUBMITTED",
+      "timestamp": "2026-08-29T09:02:22.726Z",
+      "adminEmail": "PUBLIC_INTAKE",
+      "targetId": "R4V-APP-13868",
+      "details": "New membership application submitted by ggggggggggggggggggggggggggggggggggggggg (krishsinghking07@gmail.com)",
+      "ip": "169.254.169.126"
+    },
+    {
+      "id": "LOG-1787993919738-8341",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T08:58:39.738Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-82404",
+      "details": "Application R4V-APP-82404 (djfhhhdhddndn) status updated from [Pending] to [Approved]. Notes: None",
+      "ip": "169.254.169.126"
+    },
+    {
+      "id": "LOG-1787993898527-5315",
+      "action": "APPLICATION_SUBMITTED",
+      "timestamp": "2026-08-29T08:58:18.527Z",
+      "adminEmail": "PUBLIC_INTAKE",
+      "targetId": "R4V-APP-82404",
+      "details": "New membership application submitted by djfhhhdhddndn (krishsinghking07@gmail.com)",
+      "ip": "169.254.169.126"
+    },
+    {
+      "id": "LOG-1787993832176-9997",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T08:57:12.176Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-41092",
+      "details": "Application R4V-APP-41092 (Vanguard_Raider_9) status updated from [Rejected] to [Needs Review]. Notes: None",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993829440-6464",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T08:57:09.440Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-41092",
+      "details": "Application R4V-APP-41092 (Vanguard_Raider_9) status updated from [Rejected] to [Rejected]. Notes: None",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993827115-5531",
+      "action": "APPLICATION_ARCHIVED",
+      "timestamp": "2026-08-29T08:57:07.115Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-33910",
+      "details": "Application R4V-APP-33910 (Ada_Vance_Research) marked as ARCHIVED",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993823079-2428",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T08:57:03.079Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-29471",
+      "details": "Application R4V-APP-29471 (Cipher_Ghost_77) status updated from [Approved] to [Rejected]. Notes: None",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993820306-7130",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T08:57:00.306Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-29471",
+      "details": "Application R4V-APP-29471 (Cipher_Ghost_77) status updated from [Approved] to [Approved]. Notes: None",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993818183-4830",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T08:56:58.183Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-10824",
+      "details": "Application R4V-APP-10824 (Arthur_Shelby_Audit) status updated from [Needs Review] to [Approved]. Notes: None",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993815286-8393",
+      "action": "STATUS_CHANGED",
+      "timestamp": "2026-08-29T08:56:55.286Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "R4V-APP-29471",
+      "details": "Application R4V-APP-29471 (Cipher_Ghost_77) status updated from [Pending] to [Approved]. Notes: None",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993799529-9221",
+      "action": "LOGIN",
+      "timestamp": "2026-08-29T08:56:39.529Z",
+      "adminEmail": "team@r4v.com",
+      "details": "Administrator authenticated successfully from terminal",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993636767-4103",
+      "action": "FAILED_LOGIN",
+      "timestamp": "2026-08-29T08:53:56.767Z",
+      "adminEmail": "team@r4v.com",
+      "details": "Failed authentication attempt (invalid password credentials)",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787993632575-7128",
+      "action": "FAILED_LOGIN",
+      "timestamp": "2026-08-29T08:53:52.575Z",
+      "adminEmail": "team@r4v.com",
+      "details": "Failed authentication attempt (invalid password credentials)",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1787992509994-INIT",
+      "action": "SYSTEM_INITIALIZED",
+      "timestamp": "2026-08-29T08:35:09.994Z",
+      "adminEmail": "SYSTEM",
+      "details": "R4V Classified Management System initialized with administrator team@r4v.com."
+    }
+  ]
+}

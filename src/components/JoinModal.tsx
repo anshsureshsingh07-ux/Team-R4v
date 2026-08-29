@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, ShieldCheck, CheckCircle2, AlertCircle, FileCheck, Lock, Scroll, UserCheck } from 'lucide-react';
 import { ApplicationRecord } from '../types';
+import { safeFetchJson } from '../utils/api';
 
 interface JoinModalProps {
   isOpen: boolean;
@@ -47,18 +48,23 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/applications', {
+      const response = await safeFetchJson<{
+        success: boolean;
+        applicationId: string;
+        status: string;
+        createdAt: string;
+        error?: string;
+      }>('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit application dossier.');
+      if (!response.ok || !response.data?.applicationId) {
+        throw new Error(response.error || 'Failed to submit application dossier.');
       }
 
+      const data = response.data;
       setReceipt({
         applicationId: data.applicationId,
         status: data.status,
