@@ -21,28 +21,40 @@ export default function App() {
   const [isCaseFileSequenceOpen, setIsCaseFileSequenceOpen] = useState<boolean>(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState<boolean>(false);
   const [activeSection, setActiveSection] = useState<string>('hero');
-  const [isPilotView, setIsPilotView] = useState<boolean>(() => {
-    return (
-      window.location.pathname.startsWith('/owner') ||
-      window.location.pathname.startsWith('/pilot') ||
-      window.location.hash === '#owner' ||
-      window.location.hash === '#pilot'
-    );
-  });
+  // Helper to check if current route is an admin/pilot/owner route
+  const checkIsPilotRoute = (): boolean => {
+    try {
+      const pathname = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '');
+      const hash = (window.location.hash || '').toLowerCase().replace(/\/+$/, '');
+      return (
+        pathname === '/owner' ||
+        pathname.startsWith('/owner/') ||
+        pathname === '/pilot' ||
+        pathname.startsWith('/pilot/') ||
+        pathname === '/admin' ||
+        pathname.startsWith('/admin/') ||
+        hash === '#owner' ||
+        hash === '#pilot' ||
+        hash === '#admin'
+      );
+    } catch {
+      return false;
+    }
+  };
 
-  // Handle URL path changes & popstate
+  const [isPilotView, setIsPilotView] = useState<boolean>(checkIsPilotRoute);
+
+  // Handle URL path changes, browser back/forward & hash changes
   useEffect(() => {
     const handleLocationChange = () => {
-      const isPathPilot =
-        window.location.pathname.startsWith('/owner') ||
-        window.location.pathname.startsWith('/pilot') ||
-        window.location.hash === '#owner' ||
-        window.location.hash === '#pilot';
-      setIsPilotView(isPathPilot);
+      setIsPilotView(checkIsPilotRoute());
     };
 
     window.addEventListener('popstate', handleLocationChange);
     window.addEventListener('hashchange', handleLocationChange);
+
+    // Initial check on mount
+    handleLocationChange();
 
     return () => {
       window.removeEventListener('popstate', handleLocationChange);

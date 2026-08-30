@@ -25,10 +25,12 @@ import {
   ChevronDown,
   Activity,
   Layers,
-  FileCheck
+  FileCheck,
+  BookOpen
 } from 'lucide-react';
 import { ApplicationRecord, AuditLogRecord, ApplicationStatus } from '../types';
 import { safeFetchJson, formatErrorMessage } from '../utils/api';
+import { AdminMethodsManager } from './AdminMethodsManager';
 
 interface AdminPanelProps {
   onExitAdmin: () => void;
@@ -53,11 +55,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
     approved: number;
     rejected: number;
     archived: number;
+    totalMethods?: number;
+    activeMethods?: number;
+    draftMethods?: number;
+    archivedMethods?: number;
     totalLogs: number;
   } | null>(null);
 
-  // Active View Tab: 'APPLICATIONS' | 'AUDIT_LOGS' | 'DIRECTIVES'
-  const [activeTab, setActiveTab] = useState<'APPLICATIONS' | 'AUDIT_LOGS' | 'DIRECTIVES'>('APPLICATIONS');
+  // Active View Tab: 'APPLICATIONS' | 'METHODS' | 'AUDIT_LOGS' | 'DIRECTIVES'
+  const [activeTab, setActiveTab] = useState<'APPLICATIONS' | 'METHODS' | 'AUDIT_LOGS' | 'DIRECTIVES'>('APPLICATIONS');
+
 
   // Filters & Search
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -515,21 +522,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 border-t border-[#1a1e27] pt-2 pb-1 font-mono-vintage text-xs">
+          <div className="flex items-center gap-2 border-t border-[#1a1e27] pt-2 pb-1 font-mono-vintage text-xs overflow-x-auto custom-scrollbar">
             <button
               onClick={() => setActiveTab('APPLICATIONS')}
-              className={`px-4 py-2 border-b-2 font-bold tracking-wider uppercase transition-all ${
+              className={`px-4 py-2 border-b-2 font-bold tracking-wider uppercase transition-all whitespace-nowrap ${
                 activeTab === 'APPLICATIONS'
                   ? 'border-[#c5a059] text-[#c5a059] bg-[#141720]'
                   : 'border-transparent text-[#7d7568] hover:text-[#ede8dd]'
               }`}
             >
-              MEMBERSHIP APPLICATIONS ({applications.length})
+              APPLICATIONS ({applications.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTab('METHODS')}
+              className={`px-4 py-2 border-b-2 font-bold tracking-wider uppercase transition-all whitespace-nowrap ${
+                activeTab === 'METHODS'
+                  ? 'border-[#c5a059] text-[#c5a059] bg-[#141720]'
+                  : 'border-transparent text-[#7d7568] hover:text-[#ede8dd]'
+              }`}
+            >
+              OPERATIONAL METHODS ({stats?.totalMethods !== undefined ? stats.totalMethods : '...'})
             </button>
 
             <button
               onClick={() => setActiveTab('AUDIT_LOGS')}
-              className={`px-4 py-2 border-b-2 font-bold tracking-wider uppercase transition-all ${
+              className={`px-4 py-2 border-b-2 font-bold tracking-wider uppercase transition-all whitespace-nowrap ${
                 activeTab === 'AUDIT_LOGS'
                   ? 'border-[#c5a059] text-[#c5a059] bg-[#141720]'
                   : 'border-transparent text-[#7d7568] hover:text-[#ede8dd]'
@@ -540,13 +558,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
 
             <button
               onClick={() => setActiveTab('DIRECTIVES')}
-              className={`px-4 py-2 border-b-2 font-bold tracking-wider uppercase transition-all ${
+              className={`px-4 py-2 border-b-2 font-bold tracking-wider uppercase transition-all whitespace-nowrap ${
                 activeTab === 'DIRECTIVES'
                   ? 'border-[#c5a059] text-[#c5a059] bg-[#141720]'
                   : 'border-transparent text-[#7d7568] hover:text-[#ede8dd]'
               }`}
             >
-              SAFETY BOUNDARIES & DIRECTIVES
+              SAFETY DIRECTIVES
             </button>
           </div>
         </div>
@@ -792,7 +810,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
           </div>
         )}
 
-        {/* ================= SECTION 2: AUDIT LOGS ================= */}
+        {/* ================= SECTION 2: OPERATIONAL METHODS ================= */}
+        {activeTab === 'METHODS' && token && (
+          <AdminMethodsManager
+            token={token}
+            onTriggerNotification={triggerNotification}
+            onRefreshStats={() => loadDashboardData(token)}
+          />
+        )}
+
+        {/* ================= SECTION 3: AUDIT LOGS ================= */}
         {activeTab === 'AUDIT_LOGS' && (
           <div className="space-y-6">
             <div className="bg-[#12151c] border border-[#252b38] p-6 space-y-4">

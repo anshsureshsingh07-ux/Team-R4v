@@ -110,6 +110,48 @@
   ],
   "auditLogs": [
     {
+      "id": "LOG-1788089024222-7002",
+      "action": "METHOD_DELETED",
+      "timestamp": "2026-08-30T11:23:44.222Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "MTH-1788089003332",
+      "details": "Operational method deleted: [MTH-TEST-04] Custom Verification Protocol",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1788089024203-6150",
+      "action": "LOGIN",
+      "timestamp": "2026-08-30T11:23:44.203Z",
+      "adminEmail": "team@r4v.com",
+      "details": "Administrator authenticated successfully from terminal",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1788089003332-4249",
+      "action": "METHOD_CREATED",
+      "timestamp": "2026-08-30T11:23:23.332Z",
+      "adminEmail": "team@r4v.com",
+      "targetId": "MTH-1788089003332",
+      "details": "New operational method created: [MTH-TEST-04] Custom Verification Protocol (Category: INVESTIGATION)",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1788089003315-8263",
+      "action": "LOGIN",
+      "timestamp": "2026-08-30T11:23:23.315Z",
+      "adminEmail": "team@r4v.com",
+      "details": "Administrator authenticated successfully from terminal",
+      "ip": "127.0.0.1"
+    },
+    {
+      "id": "LOG-1788088994111-9697",
+      "action": "LOGIN",
+      "timestamp": "2026-08-30T11:23:14.111Z",
+      "adminEmail": "team@r4v.com",
+      "details": "Administrator authenticated successfully from terminal",
+      "ip": "127.0.0.1"
+    },
+    {
       "id": "LOG-1788088707727-4121",
       "action": "FAILED_LOGIN",
       "timestamp": "2026-08-30T11:18:27.727Z",
@@ -272,6 +314,80 @@
       "timestamp": "2026-08-29T08:35:09.994Z",
       "adminEmail": "SYSTEM",
       "details": "R4V Classified Management System initialized with administrator team@r4v.com."
+    }
+  ],
+  "methods": [
+    {
+      "id": "MTH-ARCH-01",
+      "code": "MTH-01",
+      "title": "Chain-of-Custody Digital Archive Protocol",
+      "category": "EVIDENCE_AUDIT",
+      "clearanceLevel": "LEVEL 1",
+      "status": "ACTIVE",
+      "summary": "Standardized procedure for preserving unmodified timestamped snapshots and cryptographic hashes of digital platform evidence.",
+      "content": "1. Capture primary full-page web archive via archive.today and Wayback Machine.\n2. Extract uncompressed network HAR headers and raw metadata.\n3. Compute SHA-256 integrity hash of all captured media and evidence artifacts.\n4. Correlate with historical domain registration and public registry records.\n5. Seal artifacts in the verified Bureau Evidence Vault with immutable timestamp logs.",
+      "requirements": [
+        "Wayback / Archive.today snapshot",
+        "SHA-256 integrity checksum",
+        "Original timestamp log"
+      ],
+      "tags": [
+        "Forensics",
+        "Archival",
+        "Chain of Custody",
+        "Integrity"
+      ],
+      "author": "team@r4v.com",
+      "createdAt": "2026-08-20T11:23:03.189Z",
+      "updatedAt": "2026-08-28T11:23:03.190Z"
+    },
+    {
+      "id": "MTH-TOS-02",
+      "code": "MTH-02",
+      "title": "ToS Infraction Citation & Impersonation Audit",
+      "category": "POLICY_ENFORCEMENT",
+      "clearanceLevel": "LEVEL 2",
+      "status": "ACTIVE",
+      "summary": "Methodology for mapping fraudulent entities and trademark/identity impersonation against specific platform legal terms.",
+      "content": "1. Cross-reference genuine brand/individual verification vectors against duplicate profiles.\n2. Isolate deceptive indicators: visual similarity score, deceptive bio links, spoofed handles.\n3. Identify specific Section 4.2 / Section 7 platform terms violated.\n4. Compile side-by-side comparative PDF dossier.\n5. File verified formal policy breach report directly to platform security contact.",
+      "requirements": [
+        "Verified original entity identity proof",
+        "Side-by-side comparison breakdown",
+        "Specific clause citations"
+      ],
+      "tags": [
+        "Impersonation",
+        "ToS Audit",
+        "Compliance",
+        "Brand Safety"
+      ],
+      "author": "team@r4v.com",
+      "createdAt": "2026-08-22T23:23:03.190Z",
+      "updatedAt": "2026-08-29T11:23:03.190Z"
+    },
+    {
+      "id": "MTH-OSINT-03",
+      "code": "MTH-03",
+      "title": "Coordinated Inauthentic Network Mapping",
+      "category": "OSINT_VERIFICATION",
+      "clearanceLevel": "LEVEL 3",
+      "status": "ACTIVE",
+      "summary": "Graph-based analytical methodology for identifying automated syndicates, bot farms, and coordinated spam clusters.",
+      "content": "1. Ingest account creation timestamps and cluster co-occurring interaction timelines.\n2. Graph follower/following bipartite network to uncover syndication hubs.\n3. Analyze posting velocity and programmatic string templates.\n4. Document C2 infrastructure or shared automation gateways.\n5. Assemble network threat report for systemic remediation.",
+      "requirements": [
+        "Multi-node interaction dataset",
+        "Temporal anomaly correlation",
+        "Cluster graph export"
+      ],
+      "tags": [
+        "OSINT",
+        "Network Analysis",
+        "Bot Detection",
+        "Syndicate Mapping"
+      ],
+      "author": "team@r4v.com",
+      "createdAt": "2026-08-26T11:23:03.190Z",
+      "updatedAt": "2026-08-29T23:23:03.190Z"
     }
   ]
 }

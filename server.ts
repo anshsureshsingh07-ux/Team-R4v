@@ -37,6 +37,22 @@ const INITIAL_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'R4VBureau1920!';
 const INSTAGRAM_ADMIN_PASSWORD = process.env.INSTAGRAM_PASSWORD || 'safe instagram password';
 const JWT_SECRET = process.env.JWT_SECRET || 'r4v_birmingham_classified_secret_key_1920';
 
+interface OperationalMethodRecord {
+  id: string;
+  code: string;
+  title: string;
+  category: 'INVESTIGATION' | 'EVIDENCE_AUDIT' | 'POLICY_ENFORCEMENT' | 'CASE_MANAGEMENT' | 'OSINT_VERIFICATION' | 'CUSTOM';
+  clearanceLevel: 'LEVEL 1' | 'LEVEL 2' | 'LEVEL 3' | 'PILOT EXCLUSIVE';
+  status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
+  summary: string;
+  content: string;
+  requirements?: string[];
+  tags: string[];
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface BureauDatabase {
   admin: {
     email: string;
@@ -60,6 +76,7 @@ interface BureauDatabase {
     reviewedBy?: string;
     archived?: boolean;
   }>;
+  methods: OperationalMethodRecord[];
   auditLogs: Array<{
     id: string;
     action: string;
@@ -70,6 +87,55 @@ interface BureauDatabase {
     ip?: string;
   }>;
 }
+
+const INITIAL_SEED_METHODS: OperationalMethodRecord[] = [
+  {
+    id: 'MTH-ARCH-01',
+    code: 'MTH-01',
+    title: 'Chain-of-Custody Digital Archive Protocol',
+    category: 'EVIDENCE_AUDIT',
+    clearanceLevel: 'LEVEL 1',
+    status: 'ACTIVE',
+    summary: 'Standardized procedure for preserving unmodified timestamped snapshots and cryptographic hashes of digital platform evidence.',
+    content: `1. Capture primary full-page web archive via archive.today and Wayback Machine.\n2. Extract uncompressed network HAR headers and raw metadata.\n3. Compute SHA-256 integrity hash of all captured media and evidence artifacts.\n4. Correlate with historical domain registration and public registry records.\n5. Seal artifacts in the verified Bureau Evidence Vault with immutable timestamp logs.`,
+    requirements: ['Wayback / Archive.today snapshot', 'SHA-256 integrity checksum', 'Original timestamp log'],
+    tags: ['Forensics', 'Archival', 'Chain of Custody', 'Integrity'],
+    author: 'team@r4v.com',
+    createdAt: new Date(Date.now() - 3600000 * 240).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+  },
+  {
+    id: 'MTH-TOS-02',
+    code: 'MTH-02',
+    title: 'ToS Infraction Citation & Impersonation Audit',
+    category: 'POLICY_ENFORCEMENT',
+    clearanceLevel: 'LEVEL 2',
+    status: 'ACTIVE',
+    summary: 'Methodology for mapping fraudulent entities and trademark/identity impersonation against specific platform legal terms.',
+    content: `1. Cross-reference genuine brand/individual verification vectors against duplicate profiles.\n2. Isolate deceptive indicators: visual similarity score, deceptive bio links, spoofed handles.\n3. Identify specific Section 4.2 / Section 7 platform terms violated.\n4. Compile side-by-side comparative PDF dossier.\n5. File verified formal policy breach report directly to platform security contact.`,
+    requirements: ['Verified original entity identity proof', 'Side-by-side comparison breakdown', 'Specific clause citations'],
+    tags: ['Impersonation', 'ToS Audit', 'Compliance', 'Brand Safety'],
+    author: 'team@r4v.com',
+    createdAt: new Date(Date.now() - 3600000 * 180).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+  },
+  {
+    id: 'MTH-OSINT-03',
+    code: 'MTH-03',
+    title: 'Coordinated Inauthentic Network Mapping',
+    category: 'OSINT_VERIFICATION',
+    clearanceLevel: 'LEVEL 3',
+    status: 'ACTIVE',
+    summary: 'Graph-based analytical methodology for identifying automated syndicates, bot farms, and coordinated spam clusters.',
+    content: `1. Ingest account creation timestamps and cluster co-occurring interaction timelines.\n2. Graph follower/following bipartite network to uncover syndication hubs.\n3. Analyze posting velocity and programmatic string templates.\n4. Document C2 infrastructure or shared automation gateways.\n5. Assemble network threat report for systemic remediation.`,
+    requirements: ['Multi-node interaction dataset', 'Temporal anomaly correlation', 'Cluster graph export'],
+    tags: ['OSINT', 'Network Analysis', 'Bot Detection', 'Syndicate Mapping'],
+    author: 'team@r4v.com',
+    createdAt: new Date(Date.now() - 3600000 * 96).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+  },
+];
+
 
 // Initial seed applications for realistic dossier presentation
 const INITIAL_SEED_APPLICATIONS = [
@@ -147,7 +213,16 @@ function getDatabase(): BureauDatabase {
   try {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, 'utf-8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      let modified = false;
+      if (!parsed.methods || !Array.isArray(parsed.methods)) {
+        parsed.methods = INITIAL_SEED_METHODS;
+        modified = true;
+      }
+      if (modified) {
+        saveDatabase(parsed);
+      }
+      return parsed;
     }
   } catch (err) {
     console.error('Error reading database file, reinitializing:', err);
@@ -164,6 +239,7 @@ function getDatabase(): BureauDatabase {
       updatedAt: new Date().toISOString(),
     },
     applications: INITIAL_SEED_APPLICATIONS,
+    methods: INITIAL_SEED_METHODS,
     auditLogs: [
       {
         id: `LOG-${Date.now()}-INIT`,
@@ -581,10 +657,220 @@ app.get('/api/admin/audit-logs', requireAdminAuth, (req, res) => {
   res.json({ logs, totalCount: db.auditLogs.length });
 });
 
+// -------------------------------------------------------------
+// OPERATIONAL METHODS & PROTOCOLS ROUTES
+// -------------------------------------------------------------
+
+// Get All Methods (Admin)
+app.get('/api/admin/methods', requireAdminAuth, (req, res) => {
+  const db = getDatabase();
+  const { category, status, search } = req.query;
+
+  let results = [...(db.methods || [])];
+
+  // Status filter
+  if (status && status !== 'ALL') {
+    results = results.filter((m) => m.status === status);
+  }
+
+  // Category filter
+  if (category && category !== 'ALL') {
+    results = results.filter((m) => m.category === category);
+  }
+
+  // Search query filter
+  if (search && typeof search === 'string') {
+    const q = search.toLowerCase();
+    results = results.filter(
+      (m) =>
+        m.id.toLowerCase().includes(q) ||
+        m.code.toLowerCase().includes(q) ||
+        m.title.toLowerCase().includes(q) ||
+        m.summary.toLowerCase().includes(q) ||
+        m.content.toLowerCase().includes(q) ||
+        (m.tags && m.tags.some((t) => t.toLowerCase().includes(q)))
+    );
+  }
+
+  res.json({
+    methods: results,
+    totalCount: (db.methods || []).length,
+  });
+});
+
+// Get Single Method (Admin)
+app.get('/api/admin/methods/:id', requireAdminAuth, (req, res) => {
+  const db = getDatabase();
+  const method = (db.methods || []).find((m) => m.id === req.params.id || m.code.toLowerCase() === req.params.id.toLowerCase());
+  if (!method) {
+    res.status(404).json({ success: false, error: 'Operational method not found in database.' });
+    return;
+  }
+  res.json({ success: true, method });
+});
+
+// Create New Method (Admin)
+app.post('/api/admin/methods', requireAdminAuth, (req, res) => {
+  const { code, title, category, clearanceLevel, status, summary, content, requirements, tags } = req.body;
+  const adminUser = (req as express.Request & { adminUser: { email: string; role: string } }).adminUser;
+
+  if (!title || !summary || !content) {
+    res.status(400).json({ success: false, error: 'Title, summary, and protocol content are required.' });
+    return;
+  }
+
+  const db = getDatabase();
+  if (!db.methods) db.methods = [];
+
+  const cleanCode = code ? String(code).trim().toUpperCase() : `MTH-${Math.floor(10 + Math.random() * 90)}`;
+  const methodId = `MTH-${Date.now()}`;
+
+  const validCategories = ['INVESTIGATION', 'EVIDENCE_AUDIT', 'POLICY_ENFORCEMENT', 'CASE_MANAGEMENT', 'OSINT_VERIFICATION', 'CUSTOM'];
+  const validClearance = ['LEVEL 1', 'LEVEL 2', 'LEVEL 3', 'PILOT EXCLUSIVE'];
+  const validStatus = ['ACTIVE', 'DRAFT', 'ARCHIVED'];
+
+  const cleanCategory = validCategories.includes(category) ? category : 'CUSTOM';
+  const cleanClearance = validClearance.includes(clearanceLevel) ? clearanceLevel : 'LEVEL 1';
+  const cleanStatus = validStatus.includes(status) ? status : 'ACTIVE';
+
+  const cleanRequirements = Array.isArray(requirements)
+    ? requirements.map((r: any) => String(r).trim()).filter(Boolean)
+    : typeof requirements === 'string' && requirements.trim()
+    ? requirements.split('\n').map((r) => r.trim()).filter(Boolean)
+    : [];
+
+  const cleanTags = Array.isArray(tags)
+    ? tags.map((t: any) => String(t).trim()).filter(Boolean)
+    : typeof tags === 'string' && tags.trim()
+    ? tags.split(',').map((t) => t.trim()).filter(Boolean)
+    : [];
+
+  const newMethod: OperationalMethodRecord = {
+    id: methodId,
+    code: cleanCode,
+    title: String(title).trim(),
+    category: cleanCategory as any,
+    clearanceLevel: cleanClearance as any,
+    status: cleanStatus as any,
+    summary: String(summary).trim(),
+    content: String(content).trim(),
+    requirements: cleanRequirements,
+    tags: cleanTags,
+    author: adminUser.email,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  db.methods.unshift(newMethod);
+  saveDatabase(db);
+
+  addAuditLog(
+    'METHOD_CREATED',
+    adminUser.email,
+    `New operational method created: [${newMethod.code}] ${newMethod.title} (Category: ${newMethod.category})`,
+    newMethod.id,
+    req.ip
+  );
+
+  res.status(201).json({
+    success: true,
+    method: newMethod,
+  });
+});
+
+// Update Method (Admin)
+app.put('/api/admin/methods/:id', requireAdminAuth, (req, res) => {
+  const { code, title, category, clearanceLevel, status, summary, content, requirements, tags } = req.body;
+  const adminUser = (req as express.Request & { adminUser: { email: string; role: string } }).adminUser;
+
+  const db = getDatabase();
+  if (!db.methods) db.methods = [];
+
+  const methodIndex = db.methods.findIndex((m) => m.id === req.params.id);
+  if (methodIndex === -1) {
+    res.status(404).json({ success: false, error: 'Operational method not found in database.' });
+    return;
+  }
+
+  const existing = db.methods[methodIndex];
+
+  if (title) existing.title = String(title).trim();
+  if (code) existing.code = String(code).trim().toUpperCase();
+  if (summary) existing.summary = String(summary).trim();
+  if (content) existing.content = String(content).trim();
+  if (category) existing.category = category;
+  if (clearanceLevel) existing.clearanceLevel = clearanceLevel;
+  if (status) existing.status = status;
+
+  if (requirements !== undefined) {
+    existing.requirements = Array.isArray(requirements)
+      ? requirements.map((r: any) => String(r).trim()).filter(Boolean)
+      : typeof requirements === 'string'
+      ? requirements.split('\n').map((r) => r.trim()).filter(Boolean)
+      : [];
+  }
+
+  if (tags !== undefined) {
+    existing.tags = Array.isArray(tags)
+      ? tags.map((t: any) => String(t).trim()).filter(Boolean)
+      : typeof tags === 'string'
+      ? tags.split(',').map((t) => t.trim()).filter(Boolean)
+      : [];
+  }
+
+  existing.updatedAt = new Date().toISOString();
+
+  saveDatabase(db);
+
+  addAuditLog(
+    'METHOD_UPDATED',
+    adminUser.email,
+    `Operational method updated: [${existing.code}] ${existing.title}`,
+    existing.id,
+    req.ip
+  );
+
+  res.json({
+    success: true,
+    method: existing,
+  });
+});
+
+// Delete Method (Admin)
+app.delete('/api/admin/methods/:id', requireAdminAuth, (req, res) => {
+  const adminUser = (req as express.Request & { adminUser: { email: string; role: string } }).adminUser;
+  const db = getDatabase();
+  if (!db.methods) db.methods = [];
+
+  const methodIndex = db.methods.findIndex((m) => m.id === req.params.id);
+  if (methodIndex === -1) {
+    res.status(404).json({ success: false, error: 'Operational method not found in database.' });
+    return;
+  }
+
+  const deleted = db.methods[methodIndex];
+  db.methods.splice(methodIndex, 1);
+  saveDatabase(db);
+
+  addAuditLog(
+    'METHOD_DELETED',
+    adminUser.email,
+    `Operational method deleted: [${deleted.code}] ${deleted.title}`,
+    deleted.id,
+    req.ip
+  );
+
+  res.json({
+    success: true,
+    message: `Method ${deleted.code} has been purged from the bureau registry.`,
+  });
+});
+
 // Get Admin Statistics
 app.get('/api/admin/stats', requireAdminAuth, (req, res) => {
   const db = getDatabase();
-  const apps = db.applications;
+  const apps = db.applications || [];
+  const methods = db.methods || [];
 
   const stats = {
     totalApplications: apps.length,
@@ -593,7 +879,11 @@ app.get('/api/admin/stats', requireAdminAuth, (req, res) => {
     approved: apps.filter((a) => a.status === 'Approved' && !a.archived).length,
     rejected: apps.filter((a) => a.status === 'Rejected' && !a.archived).length,
     archived: apps.filter((a) => a.archived === true).length,
-    totalLogs: db.auditLogs.length,
+    totalMethods: methods.length,
+    activeMethods: methods.filter((m) => m.status === 'ACTIVE').length,
+    draftMethods: methods.filter((m) => m.status === 'DRAFT').length,
+    archivedMethods: methods.filter((m) => m.status === 'ARCHIVED').length,
+    totalLogs: (db.auditLogs || []).length,
   };
 
   res.json({ stats });
@@ -636,10 +926,36 @@ async function startServer() {
       appType: 'spa',
     });
     app.use(vite.middlewares);
+
+    // Explicit SPA fallback in development for client routes (e.g., /owner, /pilot, /admin)
+    app.use('*', async (req, res, next) => {
+      if (req.originalUrl.startsWith('/api/')) {
+        return next();
+      }
+      try {
+        const url = req.originalUrl;
+        const indexPath = path.resolve(process.cwd(), 'index.html');
+        if (fs.existsSync(indexPath)) {
+          let template = fs.readFileSync(indexPath, 'utf-8');
+          template = await vite.transformIndexHtml(url, template);
+          res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+          return;
+        }
+        next();
+      } catch (e) {
+        vite.ssrFixStacktrace(e as Error);
+        next(e);
+      }
+    });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
+      if (req.originalUrl.startsWith('/api/')) {
+        res.setHeader('Content-Type', 'application/json');
+        res.status(404).json({ success: false, error: `API endpoint not found: ${req.originalUrl}` });
+        return;
+      }
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

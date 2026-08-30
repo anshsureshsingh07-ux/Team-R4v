@@ -88,7 +88,11 @@ export type AuditAction =
   | 'APPLICATION_REVIEWED' 
   | 'STATUS_CHANGED' 
   | 'APPLICATION_ARCHIVED' 
-  | 'NOTE_ADDED';
+  | 'NOTE_ADDED'
+  | 'METHOD_CREATED'
+  | 'METHOD_UPDATED'
+  | 'METHOD_DELETED'
+  | 'METHOD_ARCHIVED';
 
 export interface AuditLogRecord {
   id: string;
@@ -100,9 +104,38 @@ export interface AuditLogRecord {
   ip?: string;
 }
 
+export type MethodCategory =
+  | 'INVESTIGATION'
+  | 'EVIDENCE_AUDIT'
+  | 'POLICY_ENFORCEMENT'
+  | 'CASE_MANAGEMENT'
+  | 'OSINT_VERIFICATION'
+  | 'CUSTOM';
+
+export type MethodClearance = 'LEVEL 1' | 'LEVEL 2' | 'LEVEL 3' | 'PILOT EXCLUSIVE';
+
+export type MethodStatus = 'ACTIVE' | 'DRAFT' | 'ARCHIVED';
+
+export interface OperationalMethod {
+  id: string;
+  code: string;
+  title: string;
+  category: MethodCategory;
+  clearanceLevel: MethodClearance;
+  status: MethodStatus;
+  summary: string;
+  content: string;
+  requirements?: string[];
+  tags: string[];
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AdminSession {
   email: string;
   role: 'SUPER_ADMIN' | 'BUREAU_ADMIN';
   token: string;
   expiresAt: number;
 }
+
