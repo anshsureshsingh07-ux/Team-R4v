@@ -110,6 +110,14 @@
   ],
   "auditLogs": [
     {
+      "id": "LOG-1788096228473-4913",
+      "action": "LOGIN",
+      "timestamp": "2026-08-30T13:23:48.473Z",
+      "adminEmail": "team@r4v.com",
+      "details": "Administrator authenticated successfully from terminal",
+      "ip": "127.0.0.1"
+    },
+    {
       "id": "LOG-1788095632451-5561",
       "action": "LOGIN",
       "timestamp": "2026-08-30T13:13:52.451Z",

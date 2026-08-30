@@ -437,6 +437,10 @@ function requireAdminAuth(req: express.Request, res: express.Response, next: exp
 // -------------------------------------------------------------
 
 // Public configuration info (no secrets)
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/info', (req, res) => {
   res.json({
     name: 'TEAM R4V',
