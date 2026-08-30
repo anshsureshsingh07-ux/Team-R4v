@@ -434,15 +434,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
                 Security notice: Terminal access is strictly restricted to authorized personnel. Failed attempts are recorded in the central audit ledger.
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoggingIn}
-                id="admin-login-submit-btn"
-                className="w-full py-3.5 bg-gradient-to-r from-[#8c6d32] via-[#c5a059] to-[#dfc181] hover:brightness-110 disabled:opacity-50 text-black font-cinzel font-bold text-xs tracking-[0.25em] uppercase transition-all duration-300 shadow-[0_4px_25px_rgba(197,160,89,0.3)] flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Lock size={14} />
-                <span>{isLoggingIn ? 'AUTHENTICATING PILOT...' : 'ACCESS THE PILOT'}</span>
-              </button>
+              <div className="flex flex-col gap-2.5">
+                <button
+                  type="submit"
+                  disabled={isLoggingIn}
+                  id="admin-login-submit-btn"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#8c6d32] via-[#c5a059] to-[#dfc181] hover:brightness-110 disabled:opacity-50 text-black font-cinzel font-bold text-xs tracking-[0.25em] uppercase transition-all duration-300 shadow-[0_4px_25px_rgba(197,160,89,0.3)] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Lock size={14} />
+                  <span>{isLoggingIn ? 'AUTHENTICATING PILOT...' : 'ACCESS THE PILOT'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginEmail('team@r4v.com');
+                    setLoginPassword('R4VBureau1920!');
+                    setLoginError(null);
+                  }}
+                  className="w-full py-2 bg-[#171b24] hover:bg-[#202532] border border-[#2b3344] text-[#c5a059] hover:text-[#ede8dd] font-mono-vintage text-[11px] tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Key size={12} />
+                  <span>AUTONOMOUS FILL DEMO CREDENTIALS</span>
+                </button>
+              </div>
             </form>
           </motion.div>
         </div>

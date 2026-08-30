@@ -23,19 +23,49 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   next(err);
 });
 
-// Ensure data directory exists
-const DATA_DIR = path.join(process.cwd(), 'data');
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-const DB_FILE = path.join(DATA_DIR, 'bureau_db.json');
-
 // Configuration
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'team@r4v.com';
 const INITIAL_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'R4VBureau1920!';
 const INSTAGRAM_ADMIN_PASSWORD = process.env.INSTAGRAM_PASSWORD || 'safe instagram password';
 const JWT_SECRET = process.env.JWT_SECRET || 'r4v_birmingham_classified_secret_key_1920';
+
+// Resilient data storage path helper for local, container, and Vercel/Lambda serverless environments
+function getStoragePaths(): { dataDir: string; dbFile: string } {
+  const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NOW_REGION);
+  if (isServerless) {
+    const tmpDir = path.join('/tmp', 'data');
+    try {
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+    } catch (e) {
+      console.warn('Serverless /tmp/data mkdir note:', e);
+    }
+    return { dataDir: tmpDir, dbFile: path.join(tmpDir, 'bureau_db.json') };
+  }
+
+  const localDir = path.join(process.cwd(), 'data');
+  try {
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    return { dataDir: localDir, dbFile: path.join(localDir, 'bureau_db.json') };
+  } catch (err) {
+    // Fallback to /tmp if current working directory is read-only
+    const tmpDir = path.join('/tmp', 'data');
+    try {
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+    } catch {
+      // Ignore
+    }
+    return { dataDir: tmpDir, dbFile: path.join(tmpDir, 'bureau_db.json') };
+  }
+}
+
+// In-memory cache for fast, crash-resilient serverless execution
+let inMemoryDbCache: BureauDatabase | null = null;
 
 interface OperationalMethodRecord {
   id: string;
@@ -210,9 +240,15 @@ const INITIAL_SEED_APPLICATIONS = [
 
 // Read / Write Database Helpers
 function getDatabase(): BureauDatabase {
+  if (inMemoryDbCache) {
+    return inMemoryDbCache;
+  }
+
+  const { dbFile } = getStoragePaths();
+
   try {
-    if (fs.existsSync(DB_FILE)) {
-      const data = fs.readFileSync(DB_FILE, 'utf-8');
+    if (fs.existsSync(dbFile)) {
+      const data = fs.readFileSync(dbFile, 'utf-8');
       const parsed = JSON.parse(data);
       let modified = false;
       if (!parsed.methods || !Array.isArray(parsed.methods)) {
@@ -222,6 +258,7 @@ function getDatabase(): BureauDatabase {
       if (modified) {
         saveDatabase(parsed);
       }
+      inMemoryDbCache = parsed;
       return parsed;
     }
   } catch (err) {
@@ -251,15 +288,18 @@ function getDatabase(): BureauDatabase {
     ],
   };
 
+  inMemoryDbCache = initialDb;
   saveDatabase(initialDb);
   return initialDb;
 }
 
 function saveDatabase(db: BureauDatabase): void {
+  inMemoryDbCache = db;
+  const { dbFile } = getStoragePaths();
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+    fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf-8');
   } catch (err) {
-    console.error('Error writing database file:', err);
+    console.error('Error writing database file (using memory cache):', err);
   }
 }
 
@@ -966,4 +1006,11 @@ async function startServer() {
   });
 }
 
-startServer();
+// Only start standalone HTTP server when not running in Vercel Serverless environment
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export { app };
+export default app;
+

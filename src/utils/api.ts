@@ -16,14 +16,14 @@ export interface ApiResponse<T = any> {
  * Prevents raw "[object Object]" strings from leaking to the UI.
  */
 export function formatErrorMessage(err: unknown, fallback = 'An unexpected error occurred.'): string {
-  if (!err) return fallback;
+  if (err === null || err === undefined) return fallback;
 
   if (typeof err === 'string') {
     const trimmed = err.trim();
-    if (trimmed === '[object Object]' || trimmed.includes('[object Object]')) {
+    if (!trimmed || trimmed === '[object Object]' || trimmed.includes('[object Object]')) {
       return fallback;
     }
-    return trimmed || fallback;
+    return trimmed;
   }
 
   if (err instanceof Error) {
@@ -36,10 +36,12 @@ export function formatErrorMessage(err: unknown, fallback = 'An unexpected error
   if (typeof err === 'object') {
     const obj = err as Record<string, any>;
 
-    // Check common nested error fields
+    // Check common nested error fields recursively or via candidates
     const candidates = [
       obj.error?.message,
       obj.error?.error,
+      obj.error?.detail,
+      obj.error?.description,
       typeof obj.error === 'string' ? obj.error : undefined,
       obj.response?.data?.error?.message,
       obj.response?.data?.error,
@@ -48,19 +50,27 @@ export function formatErrorMessage(err: unknown, fallback = 'An unexpected error
       obj.data?.error,
       obj.data?.message,
       obj.message,
+      obj.msg,
       obj.statusText,
+      obj.detail,
     ];
 
     for (const cand of candidates) {
       if (typeof cand === 'string' && cand.trim().length > 0 && !cand.includes('[object Object]')) {
         return cand.trim();
       }
+      if (typeof cand === 'object' && cand !== null) {
+        const nested = formatErrorMessage(cand, '');
+        if (nested && nested !== fallback) {
+          return nested;
+        }
+      }
     }
 
     // Try JSON serialization if candidate not found
     try {
       const jsonStr = JSON.stringify(err);
-      if (jsonStr && jsonStr !== '{}' && jsonStr.length < 300) {
+      if (jsonStr && jsonStr !== '{}' && jsonStr !== '[]' && jsonStr.length < 300) {
         return jsonStr;
       }
     } catch {
