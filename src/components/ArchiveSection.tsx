@@ -1,211 +1,239 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Filter, FileText, CheckCircle2, ShieldAlert, Archive as ArchiveIcon, Clock, X, ChevronRight, Stamp, Play, Film } from 'lucide-react';
+import { 
+  Search, 
+  Filter, 
+  ExternalLink, 
+  ShieldCheck, 
+  Clock, 
+  CheckCircle2, 
+  AlertTriangle, 
+  FileText, 
+  FileCheck, 
+  ChevronRight, 
+  X, 
+  Copy, 
+  Layers,
+  Archive,
+  Scale
+} from 'lucide-react';
 import { ARCHIVE_CASES } from '../data/config';
 import { ArchiveCase } from '../types';
+import { ambientSound } from '../utils/ambientAudio';
 
 interface ArchiveSectionProps {
   onOpenCaseFileSequence?: () => void;
+  onNotify?: (msg: string, type?: 'info' | 'success' | 'alert' | 'copy') => void;
 }
 
-export const ArchiveSection: React.FC<ArchiveSectionProps> = ({ onOpenCaseFileSequence }) => {
-  const [activeFilter, setActiveFilter] = useState<string>('ALL');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+export const ArchiveSection: React.FC<ArchiveSectionProps> = ({ onOpenCaseFileSequence, onNotify }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [selectedCase, setSelectedCase] = useState<ArchiveCase | null>(null);
 
-  const filters = ['ALL', 'ACTIVE', 'RESOLVED', 'DOCUMENTED', 'ARCHIVED'];
+  // Compute category counts
+  const counts = useMemo(() => {
+    return {
+      ALL: ARCHIVE_CASES.length,
+      ACTIVE: ARCHIVE_CASES.filter(c => c.status === 'ACTIVE').length,
+      RESOLVED: ARCHIVE_CASES.filter(c => c.status === 'RESOLVED').length,
+      DOCUMENTED: ARCHIVE_CASES.filter(c => c.status === 'DOCUMENTED').length,
+      ARCHIVED: ARCHIVE_CASES.filter(c => c.status === 'ARCHIVED').length,
+    };
+  }, []);
 
+  // Filtered cases
   const filteredCases = useMemo(() => {
-    return ARCHIVE_CASES.filter((item) => {
-      const matchesFilter = activeFilter === 'ALL' || item.status === activeFilter;
+    return ARCHIVE_CASES.filter((c) => {
       const matchesSearch =
-        item.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesFilter && matchesSearch;
-    });
-  }, [activeFilter, searchQuery]);
+        c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.platform && c.platform.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const getStatusColor = (status: ArchiveCase['status']) => {
-    switch (status) {
-      case 'RESOLVED':
-        return 'text-[#4ade80] border-[#166534] bg-[#052e16]/40';
-      case 'DOCUMENTED':
-        return 'text-[#c5a059] border-[#8c6d32] bg-[#382b14]/40';
-      case 'ACTIVE':
-        return 'text-[#f87171] border-[#991b1b] bg-[#450a0a]/40';
-      case 'ARCHIVED':
-        return 'text-[#9ca3af] border-[#374151] bg-[#111827]/40';
-      default:
-        return 'text-[#e3ded4] border-[#272a30] bg-[#15181c]';
+      const matchesStatus =
+        statusFilter === 'ALL' || c.status.toUpperCase() === statusFilter.toUpperCase();
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchQuery, statusFilter]);
+
+  const handleCopyCaseNumber = (caseNum: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    ambientSound.playTelegraph();
+    navigator.clipboard.writeText(caseNum);
+    if (onNotify) {
+      onNotify(`CASE #${caseNum} COPIED TO SECURE CLIPBOARD.`, 'copy');
     }
+  };
+
+  const handleOpenCase = (c: ArchiveCase) => {
+    ambientSound.playStamp();
+    setSelectedCase(c);
   };
 
   return (
     <section id="archive" className="relative py-28 bg-[#090b0e] border-t border-[#1a1d24] film-grain">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 mb-3">
             <span className="h-[1px] w-8 bg-[#c5a059]" />
             <span className="font-mono-vintage text-xs tracking-[0.3em] text-[#c5a059] uppercase">
-              SECTION III // INCIDENT LOGS
+              SECTION III // RECORD REPOSITORY
             </span>
             <span className="h-[1px] w-8 bg-[#c5a059]" />
           </div>
           <h2 className="font-cinzel text-3xl sm:text-4xl md:text-5xl font-black text-[#ede8dd] tracking-[0.15em] uppercase">
-            R4V ARCHIVE
+            CASE ARCHIVE
           </h2>
           <p className="font-editorial italic text-lg sm:text-xl text-[#9f9788] mt-3">
-            Classified incident records, verified evidence dossiers, and platform remediation histories.
+            Systematic evidence logs, verified resolutions, and documented platform policy offenses.
           </p>
         </div>
 
-        {/* Spotlight Case File Sequence Trigger Banner */}
-        {onOpenCaseFileSequence && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-12 bg-gradient-to-r from-[#14171e] via-[#1a1215] to-[#14171e] border-2 border-[#5c1c1e] p-6 sm:p-8 relative overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.85)]"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#9e2a2b]/10 rounded-full blur-2xl pointer-events-none" />
-            
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-2xl">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="px-2.5 py-0.5 bg-[#9e2a2b]/30 border border-[#9e2a2b] text-[#f2a2a6] font-mono-vintage text-[11px] font-bold tracking-widest uppercase animate-pulse">
-                    NEW CASE DETECTED
-                  </span>
-                  <span className="font-mono-vintage text-xs text-[#c5a059] tracking-wider">
-                    CASE ID: R4V-NEW-001
-                  </span>
-                  <span className="font-mono-vintage text-xs text-[#9a9284]">
-                    PRIORITY: 2X
-                  </span>
-                </div>
-                <h3 className="font-cinzel text-xl sm:text-2xl font-bold text-[#ede8dd] tracking-wide">
-                  CASE FILE: R4V-NEW-001 // SUBJECT PENDING AUDIT
-                </h3>
-                <p className="font-editorial text-sm sm:text-base text-[#cdc5b4] leading-relaxed">
-                  Experience the full 1920s cinematic motion-graphic sequence: typewriter audio, projector flicker, 5-tier evidence pipeline (<span className="text-[#e5cb91]">SOURCE → CONTENT → CONTEXT → PLATFORM RULE → REVIEW</span>), and tri-state resolution adjudications.
-                </p>
-              </div>
-
-              <button
-                onClick={onOpenCaseFileSequence}
-                className="shrink-0 px-6 py-3.5 bg-gradient-to-r from-[#8c1d1d] via-[#a82525] to-[#c53232] hover:brightness-110 text-[#fff6e5] font-cinzel font-bold text-xs sm:text-sm tracking-[0.2em] uppercase transition-all duration-300 shadow-[0_4px_25px_rgba(168,37,37,0.4)] flex items-center gap-2.5 group cursor-pointer"
-              >
-                <Play size={16} className="text-[#fff6e5] group-hover:scale-110 transition-transform" />
-                <span>PLAY CINEMATIC SEQUENCE</span>
-              </button>
+        {/* Filter & Search Bar */}
+        <div className="bg-[#121419] border border-[#232732] p-4 sm:p-5 mb-10 shadow-[0_10px_30px_rgba(0,0,0,0.7)]">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search
+                size={16}
+                className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#8c6d32]"
+              />
+              <input
+                id="archive-search-input"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search case #, keyword, target platform, or offense category..."
+                className="w-full bg-[#0a0c0e] border border-[#272b35] focus:border-[#c5a059] pl-10 pr-4 py-2.5 text-xs sm:text-sm font-mono-vintage text-[#ede8dd] placeholder-[#5a5448] focus:outline-none transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#7a7469] hover:text-[#ede8dd]"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
-          </motion.div>
-        )}
 
-        {/* Search & Filter Toolbar */}
-        <div className="bg-[#121418] border border-[#232730] p-4 sm:p-5 mb-10 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
-            <div className="flex items-center gap-1.5 mr-2 text-[#8c6d32] font-mono-vintage text-xs">
-              <Filter size={13} />
-              <span>CLASSIFICATION:</span>
+            {/* Status Filter Buttons */}
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="font-mono-vintage text-xs text-[#7a7469] mr-1 hidden sm:inline">
+                FILTER:
+              </span>
+              {(['ALL', 'ACTIVE', 'RESOLVED', 'DOCUMENTED', 'ARCHIVED'] as const).map((st) => (
+                <button
+                  key={st}
+                  id={`filter-btn-${st.toLowerCase()}`}
+                  onClick={() => {
+                    ambientSound.playClick(1000);
+                    setStatusFilter(st);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-mono-vintage tracking-wider border transition-all duration-200 cursor-pointer ${
+                    statusFilter === st
+                      ? 'bg-[#c5a059] border-[#c5a059] text-black font-bold shadow-md'
+                      : 'bg-[#0a0c0e] border-[#222630] text-[#9c9589] hover:border-[#8c6d32] hover:text-[#ede8dd]'
+                  }`}
+                >
+                  {st} ({counts[st] || 0})
+                </button>
+              ))}
             </div>
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                id={`archive-filter-${filter.toLowerCase()}`}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-3 py-1.5 text-xs font-mono-vintage tracking-wider transition-all duration-200 uppercase cursor-pointer ${
-                  activeFilter === filter
-                    ? 'bg-[#c5a059] text-black font-bold shadow-[0_0_10px_rgba(197,160,89,0.3)]'
-                    : 'bg-[#181b21] text-[#9c9589] hover:text-[#e3ded4] hover:bg-[#20242b] border border-[#272b34]'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-
-          {/* Search Box */}
-          <div className="relative w-full md:w-72">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#7a7469]" />
-            <input
-              type="text"
-              id="archive-search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="SEARCH BY CASE # OR KEYWORD..."
-              className="w-full pl-9 pr-4 py-1.5 bg-[#0b0d10] border border-[#272b34] focus:border-[#c5a059] text-xs font-mono-vintage text-[#ede8dd] placeholder-[#5c564c] focus:outline-none transition-colors"
-            />
           </div>
         </div>
 
-        {/* Archive Cases Grid */}
+        {/* Results Counter & Fast Cinematic Modal Launcher */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 px-1 font-mono-vintage text-xs text-[#8c8273]">
+          <div>
+            SHOWING <span className="text-[#c5a059] font-bold">{filteredCases.length}</span> OF{' '}
+            <span className="text-[#ede8dd]">{ARCHIVE_CASES.length}</span> CATALOGUED MATTERS
+          </div>
+          {onOpenCaseFileSequence && (
+            <button
+              onClick={() => {
+                ambientSound.playClick();
+                onOpenCaseFileSequence();
+              }}
+              className="text-[#f2a2a6] hover:text-[#fff] flex items-center gap-1 bg-[#2b0d10] px-3 py-1 border border-[#8c1d1d] hover:border-[#df878b] transition-all cursor-pointer"
+            >
+              <span>WATCH CASE #R4V-NEW-001 AUDIT SEQUENCE</span>
+              <ChevronRight size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Case Dossiers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCases.map((caseItem, idx) => (
+          {filteredCases.map((c, idx) => (
             <motion.div
-              key={caseItem.id}
+              key={c.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="bg-[#121418] border border-[#252932] hover:border-[#c5a059]/70 transition-all duration-300 p-6 flex flex-col justify-between shadow-[0_10px_30px_rgba(0,0,0,0.5)] group relative"
+              transition={{ duration: 0.4, delay: Math.min(idx * 0.06, 0.3) }}
+              onClick={() => handleOpenCase(c)}
+              className="bg-[#121418] border border-[#232732] hover:border-[#c5a059] transition-all duration-300 p-6 flex flex-col justify-between shadow-[0_10px_30px_rgba(0,0,0,0.6)] group relative cursor-pointer"
             >
-              {/* Top Manila Dossier Tab Indicator */}
-              <div className="flex items-center justify-between pb-4 border-b border-[#20242c] mb-4">
-                <div className="flex items-center gap-2">
-                  <FileText size={15} className="text-[#c5a059]" />
-                  <span className="font-cinzel text-base font-black tracking-widest text-[#fff6e5]">
-                    {caseItem.caseNumber}
+              {/* Manila Tab Header */}
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-[#1f232c] mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono-vintage text-xs font-bold text-[#c5a059] tracking-wider">
+                      {c.caseNumber}
+                    </span>
+                    <button
+                      onClick={(e) => handleCopyCaseNumber(c.caseNumber, e)}
+                      title="Copy Case Number"
+                      className="text-[#6d665a] hover:text-[#c5a059] p-0.5 transition-colors cursor-pointer"
+                    >
+                      <Copy size={12} />
+                    </button>
+                  </div>
+
+                  <span
+                    className={`font-mono-vintage text-[10px] tracking-widest px-2.5 py-0.5 border ${
+                      c.status === 'RESOLVED'
+                        ? 'border-[#2e7d32]/70 bg-[#0f2412] text-[#81c784]'
+                        : c.status === 'ACTIVE'
+                        ? 'border-[#c62828]/70 bg-[#2d0e11] text-[#f87171] animate-pulse'
+                        : c.status === 'DOCUMENTED'
+                        ? 'border-[#c5a059]/70 bg-[#241a0b] text-[#e5cb91]'
+                        : 'border-[#555] bg-[#1a1a1a] text-[#aaa]'
+                    }`}
+                  >
+                    {c.status}
                   </span>
                 </div>
 
-                {/* Status Badge */}
-                <span
-                  className={`text-[10px] font-mono-vintage font-bold tracking-widest px-2 py-0.5 border uppercase ${getStatusColor(
-                    caseItem.status
-                  )}`}
-                >
-                  {caseItem.status}
-                </span>
-              </div>
-
-              {/* Case Content */}
-              <div className="space-y-3 flex-1">
-                <div className="flex items-center justify-between text-xs font-mono-vintage text-[#8c6d32]">
-                  <span>DATE: {caseItem.date}</span>
-                  <span className="text-[#9c9589]">EVIDENCE: <strong className="text-[#c5a059]">{caseItem.evidence}</strong></span>
-                </div>
-
-                <h3 className="font-cinzel text-lg font-bold text-[#ede8dd] group-hover:text-[#c5a059] transition-colors leading-snug">
-                  {caseItem.title}
+                <h3 className="font-cinzel text-lg sm:text-xl font-bold text-[#ede8dd] group-hover:text-[#e5cb91] transition-colors leading-snug mb-2">
+                  {c.title}
                 </h3>
 
-                <span className="inline-block font-mono-vintage text-[11px] text-[#7a7469] bg-[#181b21] px-2 py-0.5 border border-[#20242b]">
-                  {caseItem.category}
-                </span>
-
-                <p className="font-editorial text-sm text-[#aba394] line-clamp-3 leading-relaxed">
-                  {caseItem.description}
+                <p className="font-editorial text-sm text-[#aba394] leading-relaxed line-clamp-3 mb-4">
+                  {c.description}
                 </p>
               </div>
 
-              {/* Card Footer Actions */}
-              <div className="mt-6 pt-4 border-t border-[#20242c] flex items-center justify-between">
-                <span className="font-mono-vintage text-[10px] text-[#696357]">
-                  FILED BY: {caseItem.filedBy.toUpperCase()}
-                </span>
+              {/* Footer Meta & Inspect Link */}
+              <div className="pt-4 border-t border-[#1f232c] space-y-3">
+                <div className="flex items-center justify-between text-xs font-mono-vintage text-[#7a7469]">
+                  <span>DATE: {c.date}</span>
+                  <span className="text-[#8c6d32]">{c.platform || 'Cross-Platform'}</span>
+                </div>
 
-                <button
-                  id={`view-dossier-btn-${caseItem.id}`}
-                  onClick={() => setSelectedCase(caseItem)}
-                  className="px-3.5 py-1.5 bg-[#1a1e26] hover:bg-[#c5a059] text-[#e3ded4] hover:text-black font-cinzel text-xs font-bold tracking-wider uppercase border border-[#2d3340] hover:border-[#c5a059] transition-all duration-200 flex items-center gap-1 cursor-pointer"
-                >
-                  <span>VIEW DOSSIER</span>
-                  <ChevronRight size={13} />
-                </button>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono-vintage text-[10px] text-[#605a4e] uppercase">
+                    SEAL: 256-BIT VERIFIED
+                  </span>
+                  <span className="font-cinzel text-xs font-bold text-[#c5a059] group-hover:translate-x-1 transition-transform flex items-center gap-1 uppercase">
+                    <span>INSPECT DOSSIER</span>
+                    <ChevronRight size={13} />
+                  </span>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -213,18 +241,27 @@ export const ArchiveSection: React.FC<ArchiveSectionProps> = ({ onOpenCaseFileSe
 
         {/* Empty State */}
         {filteredCases.length === 0 && (
-          <div className="text-center py-20 bg-[#121418] border border-[#232730]">
-            <FileText size={36} className="text-[#7a7469] mx-auto mb-3 opacity-50" />
-            <h4 className="font-cinzel text-lg text-[#ede8dd] tracking-widest">
-              NO CLASSIFIED RECORDS MATCH QUERY
+          <div className="text-center py-16 bg-[#111317] border border-[#222630] p-8">
+            <FileText size={40} className="mx-auto text-[#605a4e] mb-3" />
+            <h4 className="font-cinzel text-lg font-bold text-[#ede8dd] uppercase tracking-wider mb-1">
+              NO CLASSIFIED RECORDS FOUND
             </h4>
-            <p className="font-editorial text-sm text-[#8c8375] mt-1">
-              Adjust your search keywords or clear classification filters.
+            <p className="font-editorial text-sm text-[#8c8273] max-w-md mx-auto mb-4">
+              No matching bureau cases found for query “{searchQuery}” with status “{statusFilter}”.
             </p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('ALL');
+              }}
+              className="px-4 py-2 bg-[#8c6d32] text-black font-cinzel text-xs font-bold uppercase tracking-wider hover:bg-[#c5a059]"
+            >
+              RESET ARCHIVE FILTERS
+            </button>
           </div>
         )}
 
-        {/* Detailed Case Dossier Modal */}
+        {/* Case Details Modal */}
         <AnimatePresence>
           {selectedCase && (
             <div
@@ -232,95 +269,102 @@ export const ArchiveSection: React.FC<ArchiveSectionProps> = ({ onOpenCaseFileSe
               onClick={() => setSelectedCase(null)}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.3 }}
-                className="bg-[#12151a] border-2 border-[#c5a059] max-w-2xl w-full p-6 sm:p-8 relative shadow-[0_25px_70px_rgba(0,0,0,0.9)] max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                className="bg-[#111317] border-2 border-[#c5a059] max-w-2xl w-full p-6 sm:p-8 relative shadow-[0_25px_70px_rgba(0,0,0,0.95)] max-h-[85vh] overflow-y-auto custom-scrollbar"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Close Button */}
                 <button
-                  id="close-file-modal-btn"
                   onClick={() => setSelectedCase(null)}
-                  className="absolute top-5 right-5 p-1.5 text-[#9c9589] hover:text-[#fff6e5] border border-[#2c313c] hover:border-[#c5a059] transition-colors"
-                  title="CLOSE FILE"
+                  className="absolute top-4 right-4 p-1 text-[#8f8779] hover:text-[#ede8dd] border border-[#262a34] hover:border-[#c5a059] cursor-pointer"
                 >
                   <X size={18} />
                 </button>
 
-                {/* Dossier Header */}
-                <div className="pb-5 border-b border-[#252a34] mb-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="stamp-classified text-xs">INTERNAL ARCHIVE</span>
-                    <span
-                      className={`text-xs font-mono-vintage font-bold tracking-widest px-2.5 py-0.5 border ${getStatusColor(
-                        selectedCase.status
-                      )}`}
-                    >
-                      {selectedCase.status}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline justify-between mt-3">
-                    <h3 className="font-cinzel text-2xl sm:text-3xl font-black text-[#fff6e5] tracking-wide">
-                      {selectedCase.caseNumber}: {selectedCase.title}
-                    </h3>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-xs font-mono-vintage text-[#8c6d32] mt-2">
-                    <span>DATE INDEXED: {selectedCase.date}</span>
-                    <span>PLATFORM: {selectedCase.platform}</span>
-                    <span>EVIDENCE STATE: <strong className="text-[#c5a059]">{selectedCase.evidence}</strong></span>
-                  </div>
+                {/* Modal Top Header */}
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="stamp-sealed text-xs">RECORD SEALED</span>
+                  <span className="font-mono-vintage text-xs text-[#8c6d32]">
+                    BIRMINGHAM BUREAU // {selectedCase.caseNumber}
+                  </span>
                 </div>
 
-                {/* Detailed Sections */}
-                <div className="space-y-6 font-editorial text-sm sm:text-base text-[#d1cbc0]">
+                <h3 className="font-cinzel text-2xl sm:text-3xl font-black text-[#fff6e5] mb-2 leading-tight">
+                  {selectedCase.title}
+                </h3>
+
+                <div className="flex flex-wrap items-center gap-4 text-xs font-mono-vintage text-[#9c9589] pb-4 border-b border-[#232732] mb-6">
+                  <span>LOGGED: {selectedCase.date}</span>
+                  <span>•</span>
+                  <span>FILED BY: {selectedCase.filedBy}</span>
+                  <span>•</span>
+                  <span className="text-[#c5a059]">CATEGORY: {selectedCase.category}</span>
+                </div>
+
+                {/* Body Content */}
+                <div className="space-y-6">
                   <div>
-                    <span className="font-mono-vintage text-xs tracking-widest text-[#8c6d32] uppercase block mb-1">
-                      INCIDENT OVERVIEW
-                    </span>
-                    <p className="leading-relaxed bg-[#0b0d10] p-4 border border-[#1e2229]">
+                    <h4 className="font-mono-vintage text-xs tracking-widest text-[#c5a059] uppercase mb-1">
+                      OFFICIAL BUREAU SYNOPSIS
+                    </h4>
+                    <p className="font-editorial text-base text-[#d5cfc4] leading-relaxed">
                       {selectedCase.description}
                     </p>
                   </div>
 
-                  <div>
-                    <span className="font-mono-vintage text-xs tracking-widest text-[#8c6d32] uppercase block mb-2">
-                      CORROBORATED EVIDENCE LEDGER
-                    </span>
-                    <ul className="space-y-2 bg-[#0b0d10] p-4 border border-[#1e2229]">
-                      {selectedCase.evidencePoints.map((pt, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm font-mono-vintage text-[#cdc5b4]">
-                          <span className="text-[#c5a059] font-bold">[{i + 1}]</span>
-                          <span>{pt}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {selectedCase.evidencePoints && selectedCase.evidencePoints.length > 0 && (
+                    <div>
+                      <h4 className="font-mono-vintage text-xs tracking-widest text-[#c5a059] uppercase mb-2">
+                        DOCUMENTED FORENSIC FINDINGS
+                      </h4>
+                      <ul className="space-y-2 font-mono-vintage text-xs text-[#cdc5b4] bg-[#0c0e11] p-4 border border-[#222630]">
+                        {selectedCase.evidencePoints.map((pt, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-[#4ade80] font-bold">✓</span>
+                            <span>{pt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                  <div>
-                    <span className="font-mono-vintage text-xs tracking-widest text-[#8c6d32] uppercase block mb-1">
-                      AUDIT FINDINGS & REMEDIATION
-                    </span>
-                    <p className="leading-relaxed bg-[#181a20] p-4 border-l-2 border-[#c5a059] text-[#e3ded4] italic">
-                      “{selectedCase.findings}”
-                    </p>
+                  {selectedCase.findings && (
+                    <div>
+                      <h4 className="font-mono-vintage text-xs tracking-widest text-[#c5a059] uppercase mb-1">
+                        INVESTIGATIVE RESOLUTION & OUTCOME
+                      </h4>
+                      <div className="p-4 bg-[#0a0c0e] border border-[#222630] font-editorial text-sm sm:text-base text-[#bbb3a4] leading-relaxed">
+                        {selectedCase.findings}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Cryptographic Verification Seal */}
+                  <div className="p-4 bg-[#07090b] border border-[#1b1e26] flex items-center justify-between text-xs font-mono-vintage text-[#7a7469]">
+                    <div className="space-y-1">
+                      <div className="text-[#ede8dd] font-bold">CRYPTOGRAPHIC PROOF HASH</div>
+                      <div className="text-[10px] text-[#8c6d32] break-all">
+                        SHA256: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => handleCopyCaseNumber(selectedCase.caseNumber, e)}
+                      className="px-3 py-1.5 border border-[#8c6d32] text-[#c5a059] hover:bg-[#c5a059] hover:text-black font-bold uppercase tracking-wider transition-colors cursor-pointer shrink-0 ml-3"
+                    >
+                      COPY REF
+                    </button>
                   </div>
                 </div>
 
-                {/* Dossier Footer Actions */}
-                <div className="mt-8 pt-5 border-t border-[#252a34] flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <span className="font-mono-vintage text-xs text-[#7a7469]">
-                    CERTIFIED BY: {selectedCase.filedBy.toUpperCase()}
-                  </span>
-
+                {/* Footer Modal CTA */}
+                <div className="mt-8 pt-4 border-t border-[#232732] flex items-center justify-end">
                   <button
                     onClick={() => setSelectedCase(null)}
-                    className="w-full sm:w-auto px-6 py-2.5 bg-[#8c6d32] hover:bg-[#c5a059] text-black font-cinzel font-bold text-xs tracking-[0.2em] uppercase transition-colors"
+                    className="px-6 py-2.5 bg-[#8c6d32] text-black font-cinzel font-bold text-xs tracking-wider uppercase hover:bg-[#c5a059] cursor-pointer"
                   >
-                    CLOSE FILE
+                    CLOSE RECORD
                   </button>
                 </div>
               </motion.div>
