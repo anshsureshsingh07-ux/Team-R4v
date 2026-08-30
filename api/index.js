@@ -3,7 +3,7 @@ import path from 'path';
 
 const require = createRequire(import.meta.url);
 
-let cachedApp: any = null;
+let cachedApp = null;
 
 function getApp() {
   if (cachedApp) return cachedApp;
@@ -23,7 +23,7 @@ function getApp() {
         return cachedApp;
       }
     } catch {
-      // Try next candidate
+      // Try next location
     }
   }
 
@@ -38,7 +38,7 @@ function getApp() {
   }
 }
 
-export default function handler(req: any, res: any) {
+export default function handler(req, res) {
   const app = getApp();
   return app(req, res);
 }
