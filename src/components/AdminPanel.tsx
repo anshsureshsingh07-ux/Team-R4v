@@ -28,7 +28,7 @@ import {
   FileCheck
 } from 'lucide-react';
 import { ApplicationRecord, AuditLogRecord, ApplicationStatus } from '../types';
-import { safeFetchJson } from '../utils/api';
+import { safeFetchJson, formatErrorMessage } from '../utils/api';
 
 interface AdminPanelProps {
   onExitAdmin: () => void;
@@ -145,7 +145,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       });
 
       if (!response.ok || !response.data?.token) {
-        throw new Error(response.error || 'Authentication rejected by central terminal.');
+        const errorMsg = formatErrorMessage(
+          response.error,
+          'Authentication rejected by central terminal.'
+        );
+        throw new Error(errorMsg);
       }
 
       const data = response.data;
@@ -155,7 +159,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       setLoginPassword('');
       loadDashboardData(data.token);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Login failed.';
+      const msg = formatErrorMessage(
+        err,
+        'Authentication rejected by central terminal.'
+      );
       setLoginError(msg);
     } finally {
       setIsLoggingIn(false);
@@ -202,7 +209,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       );
 
       if (!res.ok || !res.data?.application) {
-        throw new Error(res.error || 'Failed to update application status.');
+        throw new Error(formatErrorMessage(res.error, 'Failed to update application status.'));
       }
 
       const updatedApp = res.data.application;
@@ -217,7 +224,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       triggerNotification(`Application ${appId} status set to [${newStatus}]`);
       loadDashboardData(token);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error updating status.';
+      const msg = formatErrorMessage(err, 'Error updating status.');
       alert(msg);
     } finally {
       setIsUpdatingStatus(false);
@@ -242,7 +249,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       );
 
       if (!res.ok || !res.data?.application) {
-        throw new Error(res.error || 'Failed to update notes.');
+        throw new Error(formatErrorMessage(res.error, 'Failed to update notes.'));
       }
 
       const updatedApp = res.data.application;
@@ -255,7 +262,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       triggerNotification(`Review notes saved for ${appId}`);
       loadDashboardData(token);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error updating notes.';
+      const msg = formatErrorMessage(err, 'Error updating notes.');
       alert(msg);
     }
   };
@@ -278,7 +285,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       );
 
       if (!res.ok || !res.data?.application) {
-        throw new Error(res.error || 'Failed to archive application.');
+        throw new Error(formatErrorMessage(res.error, 'Failed to archive application.'));
       }
 
       const updatedApp = res.data.application;
@@ -291,7 +298,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
       triggerNotification(`Application ${appId} ${!currentArchived ? 'ARCHIVED' : 'UNARCHIVED'}`);
       loadDashboardData(token);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error toggling archive.';
+      const msg = formatErrorMessage(err, 'Error toggling archive.');
       alert(msg);
     }
   };

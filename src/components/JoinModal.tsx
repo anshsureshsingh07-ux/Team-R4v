@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, ShieldCheck, CheckCircle2, AlertCircle, FileCheck, Lock, Scroll, UserCheck } from 'lucide-react';
 import { ApplicationRecord } from '../types';
-import { safeFetchJson } from '../utils/api';
+import { safeFetchJson, formatErrorMessage } from '../utils/api';
 
 interface JoinModalProps {
   isOpen: boolean;
@@ -61,7 +61,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
       });
 
       if (!response.ok || !response.data?.applicationId) {
-        throw new Error(response.error || 'Failed to submit application dossier.');
+        throw new Error(formatErrorMessage(response.error, 'Failed to submit application dossier.'));
       }
 
       const data = response.data;
@@ -71,7 +71,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
         createdAt: data.createdAt,
       });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'An error occurred during submission.';
+      const msg = formatErrorMessage(err, 'An error occurred during submission.');
       setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);

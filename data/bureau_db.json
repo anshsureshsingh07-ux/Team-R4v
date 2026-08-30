@@ -110,6 +110,14 @@
   ],
   "auditLogs": [
     {
+      "id": "LOG-1788088707727-4121",
+      "action": "FAILED_LOGIN",
+      "timestamp": "2026-08-30T11:18:27.727Z",
+      "adminEmail": "invalid@test.com",
+      "details": "Failed authentication attempt (unknown identifier)",
+      "ip": "127.0.0.1"
+    },
+    {
       "id": "LOG-1787997465959-3563",
       "action": "FAILED_LOGIN",
       "timestamp": "2026-08-29T09:57:45.959Z",

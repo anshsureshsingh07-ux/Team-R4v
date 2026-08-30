@@ -10,6 +10,67 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
+/**
+ * Safely extracts a readable string error message from any error value
+ * (Error instances, plain objects, strings, nested API response objects, or Axios-like errors).
+ * Prevents raw "[object Object]" strings from leaking to the UI.
+ */
+export function formatErrorMessage(err: unknown, fallback = 'An unexpected error occurred.'): string {
+  if (!err) return fallback;
+
+  if (typeof err === 'string') {
+    const trimmed = err.trim();
+    if (trimmed === '[object Object]' || trimmed.includes('[object Object]')) {
+      return fallback;
+    }
+    return trimmed || fallback;
+  }
+
+  if (err instanceof Error) {
+    const msg = err.message?.trim();
+    if (msg && msg !== '[object Object]' && !msg.includes('[object Object]')) {
+      return msg;
+    }
+  }
+
+  if (typeof err === 'object') {
+    const obj = err as Record<string, any>;
+
+    // Check common nested error fields
+    const candidates = [
+      obj.error?.message,
+      obj.error?.error,
+      typeof obj.error === 'string' ? obj.error : undefined,
+      obj.response?.data?.error?.message,
+      obj.response?.data?.error,
+      obj.response?.data?.message,
+      obj.data?.error?.message,
+      obj.data?.error,
+      obj.data?.message,
+      obj.message,
+      obj.statusText,
+    ];
+
+    for (const cand of candidates) {
+      if (typeof cand === 'string' && cand.trim().length > 0 && !cand.includes('[object Object]')) {
+        return cand.trim();
+      }
+    }
+
+    // Try JSON serialization if candidate not found
+    try {
+      const jsonStr = JSON.stringify(err);
+      if (jsonStr && jsonStr !== '{}' && jsonStr.length < 300) {
+        return jsonStr;
+      }
+    } catch {
+      // Fallback below
+    }
+  }
+
+  return fallback;
+}
+
 export async function safeFetchJson<T = any>(
   url: string,
   options?: RequestInit
@@ -67,10 +128,10 @@ export async function safeFetchJson<T = any>(
     }
 
     if (!response.ok) {
-      const errorMsg =
-        parsedData?.error ||
-        parsedData?.message ||
-        `Request failed with status ${response.status}`;
+      const errorMsg = formatErrorMessage(
+        parsedData,
+        `Request failed with status ${response.status}`
+      );
       return {
         ok: false,
         status: response.status,
@@ -85,10 +146,10 @@ export async function safeFetchJson<T = any>(
       data: parsedData,
     };
   } catch (netErr: unknown) {
-    const message =
-      netErr instanceof Error
-        ? netErr.message
-        : 'Network connection failed. Unable to reach server terminal.';
+    const message = formatErrorMessage(
+      netErr,
+      'Network connection failed. Unable to reach server terminal.'
+    );
     return {
       ok: false,
       status: 0,
