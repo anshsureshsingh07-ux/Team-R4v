@@ -5,6 +5,8 @@ import { Navigation } from './components/Navigation';
 import { Hero } from './components/Hero';
 import { AboutSection } from './components/AboutSection';
 import { LeadershipSection } from './components/LeadershipSection';
+import { CaseAnalyzerSection } from './components/CaseAnalyzerSection';
+import { MethodsSection } from './components/MethodsSection';
 import { ArchiveSection } from './components/ArchiveSection';
 import { OperationsSection } from './components/OperationsSection';
 import { CodeSection } from './components/CodeSection';
@@ -15,6 +17,9 @@ import { Footer } from './components/Footer';
 import { ClassifiedDossierModal } from './components/ClassifiedDossierModal';
 import { CaseFileSequenceModal } from './components/CaseFileSequenceModal';
 import { JoinModal } from './components/JoinModal';
+import { PrivacyNoticeModal } from './components/PrivacyNoticeModal';
+import { TermsConditionsModal } from './components/TermsConditionsModal';
+import { ApplicantStatusLookupModal } from './components/ApplicantStatusLookupModal';
 import { AdminPanel } from './components/AdminPanel';
 import { ToastNotification, ToastItem } from './components/ToastNotification';
 import { ambientSound } from './utils/ambientAudio';
@@ -23,6 +28,10 @@ export default function App() {
   const [isClassifiedModalOpen, setIsClassifiedModalOpen] = useState<boolean>(false);
   const [isCaseFileSequenceOpen, setIsCaseFileSequenceOpen] = useState<boolean>(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState<boolean>(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState<boolean>(false);
+  const [isApplicantStatusModalOpen, setIsApplicantStatusModalOpen] = useState<boolean>(false);
+  const [initialLookupQuery, setInitialLookupQuery] = useState<string>('');
   const [activeSection, setActiveSection] = useState<string>('hero');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
@@ -84,7 +93,7 @@ export default function App() {
   useEffect(() => {
     if (isPilotView) return;
 
-    const sections = ['hero', 'about', 'leadership', 'archive', 'operations', 'code', 'statistics', 'bulletin', 'contact'];
+    const sections = ['hero', 'about', 'leadership', 'analyzer', 'methods', 'archive', 'operations', 'code', 'statistics', 'bulletin', 'contact'];
     let ticking = false;
 
     const handleScroll = () => {
@@ -216,6 +225,12 @@ export default function App() {
         {/* Section 2: Leadership */}
         <LeadershipSection onOpenPilotAccess={handleOpenPilot} />
 
+        {/* Feature: R4V Case Analyzer (AI-Assisted Policy & Evidence Analysis) */}
+        <CaseAnalyzerSection onNotify={notify} />
+
+        {/* Section: Operational Methods & Dispatch Protocols (King of Banning) */}
+        <MethodsSection onNotify={notify} />
+
         {/* Section 3: The Archive */}
         <ArchiveSection onNotify={notify} />
 
@@ -223,7 +238,7 @@ export default function App() {
         <OperationsSection />
 
         {/* Section 5: The R4V Code */}
-        <CodeSection />
+        <CodeSection onOpenTerms={() => setIsTermsModalOpen(true)} />
 
         {/* Section 6: Intelligence Metrics / Statistics */}
         <StatisticsSection />
@@ -236,7 +251,15 @@ export default function App() {
       </main>
 
       {/* Cinematic Footer */}
-      <Footer onOpenPilotAccess={handleOpenPilot} />
+      <Footer 
+        onOpenPilotAccess={handleOpenPilot} 
+        onOpenPrivacyNotice={() => setIsPrivacyModalOpen(true)}
+        onOpenTerms={() => setIsTermsModalOpen(true)}
+        onOpenApplicantStatus={() => {
+          setInitialLookupQuery('');
+          setIsApplicantStatusModalOpen(true);
+        }}
+      />
 
       {/* Interactive Classified Dossier Modal */}
       <ClassifiedDossierModal
@@ -255,6 +278,39 @@ export default function App() {
       <JoinModal
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
+        onOpenPrivacyNotice={() => setIsPrivacyModalOpen(true)}
+        onOpenTerms={() => setIsTermsModalOpen(true)}
+        onOpenStatusLookup={(appId) => {
+          setInitialLookupQuery(appId || '');
+          setIsApplicantStatusModalOpen(true);
+        }}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyNoticeModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+        onOpenTerms={() => {
+          setIsPrivacyModalOpen(false);
+          setIsTermsModalOpen(true);
+        }}
+      />
+
+      {/* Terms & Conditions Modal */}
+      <TermsConditionsModal
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        onOpenPrivacyPolicy={() => {
+          setIsTermsModalOpen(false);
+          setIsPrivacyModalOpen(true);
+        }}
+      />
+
+      {/* Applicant Status & Inbox Modal */}
+      <ApplicantStatusLookupModal
+        isOpen={isApplicantStatusModalOpen}
+        onClose={() => setIsApplicantStatusModalOpen(false)}
+        initialQuery={initialLookupQuery}
       />
 
       {/* Bureau Telegraph Toast Dispatcher */}

@@ -12,7 +12,10 @@ import {
   CheckCircle2, 
   Scale, 
   Copy,
-  Sparkles
+  Sparkles,
+  Crown,
+  Download,
+  Terminal
 } from 'lucide-react';
 import { SITE_INFO, ASSETS, STATISTICS } from '../data/config';
 import { ambientSound } from '../utils/ambientAudio';
@@ -77,21 +80,32 @@ export const Hero: React.FC<HeroProps> = ({
 
       {/* Central Content Container */}
       <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 text-center flex flex-col items-center">
-        {/* Vintage Archival Top Classification Stamp */}
+        {/* Vintage Archival Top Classification Stamp + King of Banning Crown */}
         <motion.div
           initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="mb-6 flex items-center justify-center gap-3"
+          className="mb-6 flex flex-col items-center gap-2.5"
         >
-          <span className="h-[1px] w-10 sm:w-14 bg-gradient-to-r from-transparent to-[#c5a059]/60" />
-          <div className="flex items-center gap-2 px-3.5 py-1 bg-[#15181c]/90 border border-[#c5a059]/40 shadow-lg">
-            <Eye size={13} className="text-[#c5a059]" />
-            <span className="font-mono-vintage text-[11px] uppercase tracking-[0.25em] text-[#dfc181]">
-              INTELLIGENCE BUREAU // PRIVATE ARCHIVE
+          {/* King of Banning / Com Supreme Authority Pill */}
+          <div className="inline-flex items-center gap-2 px-4 py-1 bg-[#1c150c] border border-[#c5a059] shadow-[0_0_20px_rgba(197,160,89,0.3)] rounded-full">
+            <Crown size={14} className="text-[#e5cb91] animate-pulse" />
+            <span className="font-cinzel text-xs font-bold uppercase tracking-[0.25em] text-[#e5cb91]">
+              KING OF BANNING // MOST POWERFUL IN COM
             </span>
+            <Sparkles size={12} className="text-[#c5a059]" />
           </div>
-          <span className="h-[1px] w-10 sm:w-14 bg-gradient-to-l from-transparent to-[#c5a059]/60" />
+
+          <div className="flex items-center justify-center gap-3">
+            <span className="h-[1px] w-10 sm:w-14 bg-gradient-to-r from-transparent to-[#c5a059]/60" />
+            <div className="flex items-center gap-2 px-3.5 py-1 bg-[#15181c]/90 border border-[#c5a059]/40 shadow-lg">
+              <Eye size={13} className="text-[#c5a059]" />
+              <span className="font-mono-vintage text-[11px] uppercase tracking-[0.25em] text-[#dfc181]">
+                INTELLIGENCE BUREAU // PRIVATE ARCHIVE
+              </span>
+            </div>
+            <span className="h-[1px] w-10 sm:w-14 bg-gradient-to-l from-transparent to-[#c5a059]/60" />
+          </div>
         </motion.div>
 
         {/* Center Diamond Crest */}
@@ -207,6 +221,22 @@ export const Hero: React.FC<HeroProps> = ({
               <span>CASE #R4V-NEW-001</span>
             </button>
           )}
+
+          {/* New Methods & Protocols Public Repository CTA */}
+          <button
+            id="hero-methods-btn"
+            onClick={() => {
+              ambientSound.playClick();
+              const methodsSection = document.getElementById('methods');
+              if (methodsSection) {
+                methodsSection.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="w-full sm:w-auto px-6 py-3.5 bg-[#171a22] hover:bg-[#202530] border border-[#c5a059] text-[#e5cb91] font-cinzel font-bold text-xs sm:text-sm tracking-[0.2em] uppercase transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-[0_4px_20px_rgba(197,160,89,0.2)] group"
+          >
+            <Download size={14} className="text-[#c5a059] group-hover:scale-110 transition-transform" />
+            <span>OPERATIONAL METHODS</span>
+          </button>
 
           {/* Secondary Classified CTA */}
           <button

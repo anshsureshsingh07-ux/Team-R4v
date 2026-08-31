@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Send, ShieldCheck, CheckCircle2, AlertCircle, FileCheck, Lock, Scroll, UserCheck } from 'lucide-react';
+import { X, Send, ShieldCheck, CheckCircle2, AlertCircle, FileCheck, Lock, Scroll, UserCheck, Inbox, Shield } from 'lucide-react';
 import { ApplicationRecord } from '../types';
 import { safeFetchJson, formatErrorMessage } from '../utils/api';
 
 interface JoinModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenPrivacyNotice?: () => void;
+  onOpenTerms?: () => void;
+  onOpenStatusLookup?: (appId?: string) => void;
 }
 
-export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
+export const JoinModal: React.FC<JoinModalProps> = ({
+  isOpen,
+  onClose,
+  onOpenPrivacyNotice,
+  onOpenTerms,
+  onOpenStatusLookup,
+}) => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -258,7 +267,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              {/* Agreement to Code of Conduct */}
+              {/* Agreement to Code of Conduct & Privacy Notice */}
               <div className="p-4 bg-[#0a0c0f] border border-[#222834] space-y-3">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input
@@ -275,6 +284,33 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
                     I swear never to manufacture evidence, participate in coordinated harassment campaigns, solicit false platform takedowns, or pursue personal vendettas. I understand that any breach results in immediate and permanent expulsion.
                   </div>
                 </label>
+
+                <div className="pt-2 border-t border-[#1a1f2c] flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-mono-vintage text-[#787163] gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Shield size={12} className="text-[#c5a059]" />
+                    <span>Your technical network info is strictly quarantined. No IP profiling.</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {onOpenTerms && (
+                      <button
+                        type="button"
+                        onClick={onOpenTerms}
+                        className="text-[#c5a059] hover:underline cursor-pointer font-bold"
+                      >
+                        TERMS & CONDITIONS
+                      </button>
+                    )}
+                    {onOpenPrivacyNotice && (
+                      <button
+                        type="button"
+                        onClick={onOpenPrivacyNotice}
+                        className="text-[#c5a059] hover:underline cursor-pointer font-bold"
+                      >
+                        PRIVACY NOTICE
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Submit CTA */}
@@ -333,10 +369,24 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
                 Your dossier has been registered in the central intake ledger. An administrator will verify your credentials against bureau standards. <span className="text-[#c5a059] font-semibold">You will be added to our groupchat and BDC within 24 hours</span> upon approval.
               </p>
 
-              <div className="pt-4">
+              <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
+                {onOpenStatusLookup && (
+                  <button
+                    onClick={() => {
+                      const id = receipt.applicationId;
+                      handleReset();
+                      onOpenStatusLookup(id);
+                    }}
+                    className="px-6 py-3 bg-[#8c6d32] hover:bg-[#a6823d] text-xs font-mono-vintage font-bold text-black tracking-widest uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Inbox size={14} />
+                    <span>CHECK DECISION NOTIFICATIONS</span>
+                  </button>
+                )}
+
                 <button
                   onClick={handleReset}
-                  className="px-8 py-3 bg-[#181d26] border border-[#374154] hover:border-[#c5a059] text-xs font-mono-vintage text-[#ede8dd] tracking-widest uppercase transition-all"
+                  className="px-8 py-3 bg-[#181d26] border border-[#374154] hover:border-[#c5a059] text-xs font-mono-vintage text-[#ede8dd] tracking-widest uppercase transition-all cursor-pointer"
                 >
                   RETURN TO BUREAU
                 </button>

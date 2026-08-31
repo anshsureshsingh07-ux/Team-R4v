@@ -59,6 +59,8 @@ export const Navigation: React.FC<NavigationProps> = ({
   const navLinks = [
     { label: 'ABOUT', href: '#about', id: 'about' },
     { label: 'LEADERSHIP', href: '#leadership', id: 'leadership' },
+    { label: 'ANALYZER', href: '#analyzer', id: 'analyzer', badge: 'AI' },
+    { label: 'METHODS', href: '#methods', id: 'methods', badge: 'NEW' },
     { label: 'ARCHIVE', href: '#archive', id: 'archive' },
     { label: 'OPERATIONS', href: '#operations', id: 'operations' },
     { label: 'CODE', href: '#code', id: 'code' },
@@ -114,13 +116,18 @@ export const Navigation: React.FC<NavigationProps> = ({
                   e.preventDefault();
                   handleNavClick(link.href);
                 }}
-                className={`font-cinzel text-xs tracking-[0.2em] px-2.5 py-1.5 transition-all duration-200 uppercase relative cursor-pointer ${
+                className={`font-cinzel text-xs tracking-[0.2em] px-2.5 py-1.5 transition-all duration-200 uppercase relative cursor-pointer flex items-center gap-1.5 ${
                   isActive
                     ? 'text-[#e5cb91] font-bold'
                     : 'text-[#9c9589] hover:text-[#e3ded4] hover:bg-[#181a1f]/60'
                 }`}
               >
                 {link.label}
+                {link.badge && (
+                  <span className="px-1 py-0.2 text-[8px] bg-[#8b1a1a] text-[#fff5ea] font-mono-vintage font-bold rounded-xs tracking-tighter">
+                    {link.badge}
+                  </span>
+                )}
                 {isActive && (
                   <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#c5a059]" />
                 )}

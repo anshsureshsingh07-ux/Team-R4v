@@ -1,12 +1,20 @@
 import React from 'react';
-import { Shield, ArrowUp, Key } from 'lucide-react';
+import { Shield, ArrowUp, Key, ShieldCheck, Inbox, Scale } from 'lucide-react';
 import { SITE_INFO } from '../data/config';
 
 interface FooterProps {
   onOpenPilotAccess?: () => void;
+  onOpenPrivacyNotice?: () => void;
+  onOpenTerms?: () => void;
+  onOpenApplicantStatus?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenPilotAccess }) => {
+export const Footer: React.FC<FooterProps> = ({ 
+  onOpenPilotAccess,
+  onOpenPrivacyNotice,
+  onOpenTerms,
+  onOpenApplicantStatus,
+}) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -57,8 +65,38 @@ export const Footer: React.FC<FooterProps> = ({ onOpenPilotAccess }) => {
 
         {/* Bottom Legal, Pilot Access & Return to Top */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs font-mono-vintage text-[#635d52] gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span>© {SITE_INFO.year} {SITE_INFO.name} — ALL RIGHTS RESERVED.</span>
+            
+            {onOpenTerms && (
+              <button
+                onClick={onOpenTerms}
+                className="text-[#8c6d32] hover:text-[#e5cb91] underline flex items-center gap-1 cursor-pointer"
+              >
+                <Scale size={12} />
+                <span>TERMS & CONDITIONS</span>
+              </button>
+            )}
+
+            {onOpenPrivacyNotice && (
+              <button
+                onClick={onOpenPrivacyNotice}
+                className="text-[#8c6d32] hover:text-[#e5cb91] underline flex items-center gap-1 cursor-pointer"
+              >
+                <ShieldCheck size={12} />
+                <span>PRIVACY POLICY</span>
+              </button>
+            )}
+
+            {onOpenApplicantStatus && (
+              <button
+                onClick={onOpenApplicantStatus}
+                className="text-[#8c6d32] hover:text-[#e5cb91] underline flex items-center gap-1 cursor-pointer"
+              >
+                <Inbox size={12} />
+                <span>APPLICANT STATUS INQUIRY</span>
+              </button>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">

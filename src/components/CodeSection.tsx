@@ -1,9 +1,13 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Scroll, Stamp, Feather, ShieldAlert, CheckCircle } from 'lucide-react';
+import { Scroll, Stamp, Feather, ShieldAlert, CheckCircle, Scale } from 'lucide-react';
 import { CODE_RULES } from '../data/config';
 
-export const CodeSection: React.FC = () => {
+interface CodeSectionProps {
+  onOpenTerms?: () => void;
+}
+
+export const CodeSection: React.FC<CodeSectionProps> = ({ onOpenTerms }) => {
   return (
     <section id="code" className="relative py-28 bg-[#090a0d] border-t border-[#1a1d24] film-grain">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -128,6 +132,23 @@ export const CodeSection: React.FC = () => {
               </span>
             </div>
           </div>
+
+          {/* Full Terms & Conditions Link Action */}
+          {onOpenTerms && (
+            <div className="mt-8 pt-6 border-t border-[#1e2229] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono-vintage">
+              <span className="text-[#8c8273]">
+                Looking for the full community bylaws &amp; rumour control protocols?
+              </span>
+              <button
+                type="button"
+                onClick={onOpenTerms}
+                className="px-4 py-2 bg-[#171a22] hover:bg-[#202530] border border-[#8c6d32] hover:border-[#c5a059] text-[#e5cb91] font-bold tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Scale size={14} className="text-[#c5a059]" />
+                <span>READ 💀 R4V TERMS &amp; CONDITIONS</span>
+              </button>
+            </div>
+          )}
 
           {/* Charter Footnote */}
           <div className="mt-8 text-center text-xs font-mono-vintage text-[#6b655a] flex items-center justify-center gap-2">

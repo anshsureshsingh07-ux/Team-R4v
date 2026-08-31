@@ -74,9 +74,13 @@ export const AdminMethodsManager: React.FC<AdminMethodsManagerProps> = ({
   const [formCategory, setFormCategory] = useState<MethodCategory>('INVESTIGATION');
   const [formClearance, setFormClearance] = useState<MethodClearance>('LEVEL 1');
   const [formStatus, setFormStatus] = useState<MethodStatus>('ACTIVE');
+  const [formPlatform, setFormPlatform] = useState<string>('Instagram / Meta');
+  const [formSuccessRate, setFormSuccessRate] = useState<string>('99.2%');
+  const [formExecutionTime, setFormExecutionTime] = useState<string>('15-45 Minutes');
   const [formSummary, setFormSummary] = useState<string>('');
   const [formContent, setFormContent] = useState<string>('');
   const [formRequirements, setFormRequirements] = useState<string>('');
+  const [formPayloadTemplate, setFormPayloadTemplate] = useState<string>('');
   const [formTags, setFormTags] = useState<string>('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -112,9 +116,13 @@ export const AdminMethodsManager: React.FC<AdminMethodsManagerProps> = ({
     setFormCategory('INVESTIGATION');
     setFormClearance('LEVEL 1');
     setFormStatus('ACTIVE');
+    setFormPlatform('Instagram / Meta');
+    setFormSuccessRate('99.2%');
+    setFormExecutionTime('15-45 Minutes');
     setFormSummary('');
     setFormContent('');
     setFormRequirements('');
+    setFormPayloadTemplate('');
     setFormTags('');
     setFormError(null);
     setIsFormModalOpen(true);
@@ -128,9 +136,13 @@ export const AdminMethodsManager: React.FC<AdminMethodsManagerProps> = ({
     setFormCategory(method.category);
     setFormClearance(method.clearanceLevel);
     setFormStatus(method.status);
+    setFormPlatform(method.platform || 'Instagram / Meta');
+    setFormSuccessRate(method.successRate || '99.2%');
+    setFormExecutionTime(method.executionTime || '15-45 Minutes');
     setFormSummary(method.summary);
     setFormContent(method.content);
     setFormRequirements((method.requirements || []).join('\n'));
+    setFormPayloadTemplate(method.payloadTemplate || '');
     setFormTags((method.tags || []).join(', '));
     setFormError(null);
     setIsFormModalOpen(true);
@@ -154,8 +166,12 @@ export const AdminMethodsManager: React.FC<AdminMethodsManagerProps> = ({
         category: formCategory,
         clearanceLevel: formClearance,
         status: formStatus,
+        platform: formPlatform.trim(),
+        successRate: formSuccessRate.trim(),
+        executionTime: formExecutionTime.trim(),
         summary: formSummary.trim(),
         content: formContent.trim(),
+        payloadTemplate: formPayloadTemplate.trim(),
         requirements: formRequirements
           .split('\n')
           .map((r) => r.trim())
@@ -752,6 +768,50 @@ export const AdminMethodsManager: React.FC<AdminMethodsManagerProps> = ({
                   />
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Platform */}
+                  <div>
+                    <label className="block text-[10px] text-[#8c8273] uppercase tracking-wider mb-1 font-bold">
+                      TARGET PLATFORM
+                    </label>
+                    <input
+                      type="text"
+                      value={formPlatform}
+                      onChange={(e) => setFormPlatform(e.target.value)}
+                      placeholder="e.g. Instagram / Meta"
+                      className="w-full bg-[#090b0e] border border-[#222834] focus:border-[#c5a059] px-3 py-2 text-[#ede8dd] focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Success Rate */}
+                  <div>
+                    <label className="block text-[10px] text-[#8c8273] uppercase tracking-wider mb-1 font-bold">
+                      SUCCESS RATE
+                    </label>
+                    <input
+                      type="text"
+                      value={formSuccessRate}
+                      onChange={(e) => setFormSuccessRate(e.target.value)}
+                      placeholder="e.g. 99.4%"
+                      className="w-full bg-[#090b0e] border border-[#222834] focus:border-[#c5a059] px-3 py-2 text-[#ede8dd] focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Execution Time */}
+                  <div>
+                    <label className="block text-[10px] text-[#8c8273] uppercase tracking-wider mb-1 font-bold">
+                      EXECUTION TIME
+                    </label>
+                    <input
+                      type="text"
+                      value={formExecutionTime}
+                      onChange={(e) => setFormExecutionTime(e.target.value)}
+                      placeholder="e.g. 15-45 Minutes"
+                      className="w-full bg-[#090b0e] border border-[#222834] focus:border-[#c5a059] px-3 py-2 text-[#ede8dd] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
                 {/* Step-by-Step Content / Playbook */}
                 <div>
                   <label className="block text-[10px] text-[#c5a059] uppercase tracking-wider mb-1 font-bold">
@@ -764,6 +824,20 @@ export const AdminMethodsManager: React.FC<AdminMethodsManagerProps> = ({
                     onChange={(e) => setFormContent(e.target.value)}
                     placeholder="1. Step one instructions...&#10;2. Step two documentation...&#10;3. Evidence verification and final filing..."
                     className="w-full bg-[#090b0e] border border-[#222834] focus:border-[#c5a059] p-3 text-[#ede8dd] focus:outline-none font-mono leading-relaxed"
+                  />
+                </div>
+
+                {/* Standardized Reporting Payload Template */}
+                <div>
+                  <label className="block text-[10px] text-[#c5a059] uppercase tracking-wider mb-1 font-bold">
+                    STANDARDIZED REPORTING DISPATCH TEMPLATE (Copyable payload)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formPayloadTemplate}
+                    onChange={(e) => setFormPayloadTemplate(e.target.value)}
+                    placeholder="[TEAM R4V OFFICIAL DISPATCH]&#10;TARGET: [ENTER_TARGET]&#10;VIOLATION: [TERMS_CLAUSE]&#10;EVIDENCE: [VERIFIED_LINK]"
+                    className="w-full bg-[#090b0e] border border-[#222834] focus:border-[#c5a059] p-3 text-[#22c55e] focus:outline-none font-mono text-xs leading-relaxed"
                   />
                 </div>
 
